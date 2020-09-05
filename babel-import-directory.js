@@ -136,6 +136,7 @@ module.exports = function dir (babel) {
           files.forEach(({file, fileName, fileUid}) => {
             const [slug] = file[0].split('.')
 
+            // Add the module
             path.insertBefore(
               t.assignmentExpression(
                 '=',
@@ -146,6 +147,8 @@ module.exports = function dir (babel) {
                 fileUid
               )
             )
+
+            // Add the url slug
             path.insertBefore(
               t.assignmentExpression(
                 '=',
@@ -157,6 +160,21 @@ module.exports = function dir (babel) {
                   t.identifier('slug'),
                 ),
                 t.stringLiteral(slug)
+              )
+            )
+
+            // Add the pathname
+            path.insertBefore(
+              t.assignmentExpression(
+                '=',
+                t.memberExpression(
+                  t.memberExpression(
+                    dirVar,
+                    t.identifier(fileName),
+                  ),
+                  t.identifier('pathname'),
+                ),
+                t.stringLiteral(file[0])
               )
             )
           }

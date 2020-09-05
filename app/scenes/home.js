@@ -17,7 +17,8 @@ export default function HomeScene() {
   console.log(notes)
   const {
     default: Note,
-    title
+    title,
+    pathname
   } = notes.find((noteModule) => noteModule.slug === slug) || {}
   
   const noteList = (
@@ -54,7 +55,7 @@ export default function HomeScene() {
             <article class="prose">
                 <Note />
                 <footer>
-                  <a href={`https://github.com/jacobparis/garden/blob/master/app/notes/${slug}`}>
+                  <a href={`https://github.com/jacobparis/garden/blob/master/app/notes/${pathname}`}>
                     Edit this page on GitHub
                   </a>
                 </footer>
