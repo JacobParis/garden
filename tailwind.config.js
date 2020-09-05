@@ -1,8 +1,8 @@
 module.exports = {
   purge: [
     './app/**/*.mdx',
-    './src/**/*.js',
-    './src/**/*.html',
+    './app/**/*.js',
+    './app/**/*.html',
   ],
   theme: {
     extend: {
