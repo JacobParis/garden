@@ -44,21 +44,34 @@ export default function HomeScene() {
         <div className="relative flex-grow py-4 border-r">
           <nav>
             <ul>
-              { noteList }
+              { notes.map((noteModule) => (
+                <li className="p-3">
+                  <a className="text-blue-600 underline" href={`/notes/${noteModule.slug}`}> { noteModule.title } </a>
+                </li>
+              )) }
             </ul>
           </nav>
+
+          <div class="p-3">
+            <a class="text-blue-600 underline" href="https://github.com/JacobParis/garden/new/master/app/notes">
+              Add a new note
+            </a>
+          </div>
         </div>
       }
     >
       { Note && (
           <div class="p-4 max-w-6xl mx-auto">
-            <article class="prose">
+            <article>
+              <div class="prose ">
                 <Note />
-                <footer>
-                  <a href={`https://github.com/jacobparis/garden/blob/master/app/notes/${pathname}`}>
-                    Edit this page on GitHub
-                  </a>
-                </footer>
+              </div>
+
+              <footer class="py-3">
+                <a class="text-blue-600 underline" href={`https://github.com/jacobparis/garden/blob/master/app/notes/${pathname}`}>
+                  Edit this page on GitHub
+                </a>
+              </footer>
             </article>
           </div>
         )
