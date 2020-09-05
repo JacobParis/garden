@@ -30,7 +30,7 @@ export default function HomeScene() {
         <div className="flex items-center justify-between flex-grow px-3">
           <h1 className="text-lg">{ title }</h1>
 
-          <a target="_blank" rel="noopener noreferrer" className="text-blue-600 underline" href="https://github.com/JacobParis/garden">
+          <a target="_blank" rel="noopener noreferrer" className="text-blue-700 underline" href="https://github.com/JacobParis/garden">
             Source
           </a>
         </div>
@@ -41,14 +41,14 @@ export default function HomeScene() {
             <ul>
               { notes.map((noteModule) => (
                 <li className="p-3" key={noteModule.slug}>
-                  <a className="text-blue-600 underline" href={`/notes/${noteModule.slug}`}> { noteModule.title } </a>
+                  <a className="text-blue-700 underline" href={`/notes/${noteModule.slug}`}> { noteModule.title } </a>
                 </li>
               )) }
             </ul>
           </nav>
 
           <div className="p-3">
-            <a target="_blank" rel="noopener noreferrer" className="text-blue-600 underline" href="https://github.com/JacobParis/garden/new/master/app/notes">
+            <a target="_blank" rel="noopener noreferrer" className="text-blue-700 underline" href="https://github.com/JacobParis/garden/new/master/app/notes">
               Add a new note
             </a>
           </div>
@@ -63,7 +63,7 @@ export default function HomeScene() {
               </div>
 
               <footer className="py-3">
-                <a target="_blank" rel="noopener noreferrer" className="text-blue-600 underline" href={`https://github.com/jacobparis/garden/blob/master/app/notes/${pathname}`}>
+                <a target="_blank" rel="noopener noreferrer" className="text-blue-700 underline" href={`https://github.com/jacobparis/garden/blob/master/app/notes/${pathname}`}>
                   Edit this page on GitHub
                 </a>
               </footer>
