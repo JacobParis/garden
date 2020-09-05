@@ -53,7 +53,7 @@ export default function HomeScene() {
           </nav>
 
           <div class="p-3">
-            <a class="text-blue-600 underline" href="https://github.com/JacobParis/garden/new/master/app/notes">
+            <a target="_blank" rel="noopener noreferrer" class="text-blue-600 underline" href="https://github.com/JacobParis/garden/new/master/app/notes">
               Add a new note
             </a>
           </div>
@@ -68,7 +68,7 @@ export default function HomeScene() {
               </div>
 
               <footer class="py-3">
-                <a class="text-blue-600 underline" href={`https://github.com/jacobparis/garden/blob/master/app/notes/${pathname}`}>
+                <a target="_blank" rel="noopener noreferrer" class="text-blue-600 underline" href={`https://github.com/jacobparis/garden/blob/master/app/notes/${pathname}`}>
                   Edit this page on GitHub
                 </a>
               </footer>
