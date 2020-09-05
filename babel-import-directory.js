@@ -8,13 +8,15 @@ const buildRequire = template(`for (let key in IMPORTED) {
   DIR_IMPORT[key === 'default' ? IMPORTED_NAME : key] = IMPORTED[key]
 }`)
 
-const toCamelCase = (name) =>
-  name.replace(/([-_.]\w)/g, (_, $1) => $1[1].toUpperCase())
+function toCamelCase(input) {
+  return input.replace(/([-_.]\w)/g, (_, $1) => $1[1].toUpperCase())
+}
 
-const toSnakeCase = (name) =>
-  name.replace(/([-.A-Z])/g, (_, $1) => '_' + ($1 === '.' || $1 === '-' ? '' : $1.toLowerCase()))
+function toSnakeCase (input) {
+  return input.replace(/([-.A-Z])/g, (_, $1) => '_' + ($1 === '.' || $1 === '-' ? '' : $1.toLowerCase()))
+}
 
-const getFiles = (parent, exts = ['.js', '.es6', '.es', '.jsx'], files = [], recursive = false, path = []) => {
+function getFiles ({parent, exts = ['.js'], files = [], recursive = false, path = []}) {
   let r = _fs.readdirSync(parent)
 
   for (let i = 0, l = r.length; i < l; i++) {
@@ -40,11 +42,10 @@ module.exports = function dir (babel) {
   return {
     visitor: {
       ImportDeclaration (path, state) {
-        const {node} = path
-        let src = node.source.value
+        const src = path.node.source.value
 
-        if (src[0] !== '.' && src[0] !== '/') { return }
-        const pathPrefix = src.split('/')[0] + '/';
+        // Don't import modules by mistake
+        if (!src.startsWith('.') && !src.startsWith('/')) return
 
         const isExplicitWildcard = wildcardRegex.test(src)
         let cleanedPath = src.replace(wildcardRegex, '')
@@ -62,24 +63,32 @@ module.exports = function dir (babel) {
         } catch (e) {}
 
         try {
-          if (!_fs.statSync(checkPath).isDirectory()) { return }
-        } catch (e) { return }
+          // Don't import files by mistake
+          if (!_fs.statSync(checkPath).isDirectory()) return 
+        } catch (e) {
+          return
+        }
 
         const nameTransform = state.opts.snakeCase ? toSnakeCase : toCamelCase
 
-        const _files = getFiles(checkPath, state.opts.exts, [], isRecursive)
-        const files = _files.map((file) =>
-          [file, nameTransform(file[file.length - 1]), path.scope.generateUidIdentifier(file[file.length - 1])]
-        )
+        const files = getFiles({
+          parent: checkPath,
+          exts: state.opts.exts,
+          recursive: isRecursive
+        }).map((file) => ({
+          file: file,
+          fileName: nameTransform(file[file.length - 1]),
+          fileUid: path.scope.generateUidIdentifier(file[file.length - 1])
+        }))
 
-        console.log({ cleanedPath, pathPrefix })
+        if (!files.length) return
 
-        if (!files.length) { return }
-
-        const imports = files.map(([file, fileName, fileUid]) => t.importDeclaration(
-          [t.importNamespaceSpecifier(fileUid)],
-          t.stringLiteral(_path.join(cleanedPath, ...file))
-        ))
+        const imports = files.map(({file, fileUid}) => {
+          return t.importDeclaration(
+            [t.importNamespaceSpecifier(fileUid)],
+            t.stringLiteral(_path.join(cleanedPath, ...file))
+          )
+        })
 
         let dirVar = path.scope.generateUidIdentifier('dirImport')
         path.insertBefore(t.variableDeclaration(
@@ -88,9 +97,7 @@ module.exports = function dir (babel) {
           ]
         ))
 
-        for (let i = node.specifiers.length - 1; i >= 0; i--) {
-          let dec = node.specifiers[i]
-
+        for (const dec of path.node.specifiers) {
           if (t.isImportNamespaceSpecifier(dec) || t.isImportDefaultSpecifier(dec)) {
             path.insertAfter(t.variableDeclaration(
               'const', [
@@ -118,7 +125,7 @@ module.exports = function dir (babel) {
         }
 
         if (isExplicitWildcard) {
-          files.forEach(([file, fileName, fileUid]) =>
+          files.forEach(({file, fileName, fileUid}) =>
             path.insertAfter(buildRequire({
               IMPORTED_NAME: t.stringLiteral(fileName),
               DIR_IMPORT: dirVar,
@@ -126,8 +133,10 @@ module.exports = function dir (babel) {
             }))
           )
         } else {
-          files.forEach(([file, fileName, fileUid]) =>
-            path.insertAfter(
+          files.forEach(({file, fileName, fileUid}) => {
+            const [slug] = file[0].split('.')
+
+            path.insertBefore(
               t.assignmentExpression(
                 '=',
                 t.memberExpression(
@@ -137,6 +146,20 @@ module.exports = function dir (babel) {
                 fileUid
               )
             )
+            path.insertBefore(
+              t.assignmentExpression(
+                '=',
+                t.memberExpression(
+                  t.memberExpression(
+                    dirVar,
+                    t.identifier(fileName),
+                  ),
+                  t.identifier('slug'),
+                ),
+                t.stringLiteral(slug)
+              )
+            )
+          }
           )
         }
 

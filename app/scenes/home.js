@@ -14,14 +14,22 @@ export default function HomeScene() {
   
   const { slug } = useParams()
 
+  console.log(notes)
   const {
     default: Note,
-    metadata: {
-      title
-    }
-  } = notes.find(({metadata}) => metadata.slug === slug) || {}
+    title
+  } = notes.find((noteModule) => noteModule.slug === slug) || {}
   
-  return (
+  const noteList = (
+    <ul>
+      { notes.map((noteModule) => (
+        <li className="p-3">
+          <a className="text-blue-500" href={`/notes/${noteModule.slug}`}> { noteModule.title } </a>
+        </li>
+      ))}
+    </ul>
+  )
+  return Note ? (
     <Menu
       isStatic={isStatic}
       isClosed={isClosed}
@@ -35,11 +43,7 @@ export default function HomeScene() {
         <div className="relative flex-grow py-4 border-r">
           <nav>
             <ul>
-              { notes.map(({ metadata }) => (
-                <li className="p-3">
-                  <a href={`/notes/${metadata.slug}`}> { metadata.title } </a>
-                </li>
-              ))}
+              { noteList }
             </ul>
           </nav>
         </div>
@@ -49,10 +53,15 @@ export default function HomeScene() {
           <div class="p-4 max-w-6xl mx-auto">
             <article class="prose">
                 <Note />
+                <footer>
+                  <a href={`https://github.com/jacobparis/garden/blob/master/app/notes/${slug}`}>
+                    Edit this page on GitHub
+                  </a>
+                </footer>
             </article>
           </div>
         )
       }
     </Menu>
-  )
+  ) : noteList
 }
