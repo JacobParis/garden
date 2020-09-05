@@ -21,15 +21,6 @@ export default function HomeScene() {
     pathname
   } = notes.find((noteModule) => noteModule.slug === slug) || {}
   
-  const noteList = (
-    <ul>
-      { notes.map((noteModule) => (
-        <li className="p-3">
-          <a className="text-blue-500" href={`/notes/${noteModule.slug}`}> { noteModule.title } </a>
-        </li>
-      ))}
-    </ul>
-  )
   return Note ? (
     <Menu
       isStatic={isStatic}
@@ -39,7 +30,7 @@ export default function HomeScene() {
         <div className="flex items-center justify-between flex-grow px-3">
           <h1 className="text-lg">{ title }</h1>
 
-          <a target="_blank" rel="noopener noreferrer" class="text-blue-600 underline" href="https://github.com/JacobParis/garden">
+          <a target="_blank" rel="noopener noreferrer" className="text-blue-600 underline" href="https://github.com/JacobParis/garden">
             Source
           </a>
         </div>
@@ -49,15 +40,15 @@ export default function HomeScene() {
           <nav>
             <ul>
               { notes.map((noteModule) => (
-                <li className="p-3">
+                <li className="p-3" key={noteModule.slug}>
                   <a className="text-blue-600 underline" href={`/notes/${noteModule.slug}`}> { noteModule.title } </a>
                 </li>
               )) }
             </ul>
           </nav>
 
-          <div class="p-3">
-            <a target="_blank" rel="noopener noreferrer" class="text-blue-600 underline" href="https://github.com/JacobParis/garden/new/master/app/notes">
+          <div className="p-3">
+            <a target="_blank" rel="noopener noreferrer" className="text-blue-600 underline" href="https://github.com/JacobParis/garden/new/master/app/notes">
               Add a new note
             </a>
           </div>
@@ -65,14 +56,14 @@ export default function HomeScene() {
       }
     >
       { Note && (
-          <div class="p-4 max-w-6xl mx-auto">
+          <div className="max-w-6xl p-4 mx-auto">
             <article>
-              <div class="prose ">
+              <div className="prose ">
                 <Note />
               </div>
 
-              <footer class="py-3">
-                <a target="_blank" rel="noopener noreferrer" class="text-blue-600 underline" href={`https://github.com/jacobparis/garden/blob/master/app/notes/${pathname}`}>
+              <footer className="py-3">
+                <a target="_blank" rel="noopener noreferrer" className="text-blue-600 underline" href={`https://github.com/jacobparis/garden/blob/master/app/notes/${pathname}`}>
                   Edit this page on GitHub
                 </a>
               </footer>
@@ -81,5 +72,13 @@ export default function HomeScene() {
         )
       }
     </Menu>
-  ) : noteList
+  ) : (
+    <ul>
+      { notes.map((noteModule) => (
+        <li className="p-3" key={noteModule.slug}>
+          <a className="text-blue-500" href={`/notes/${noteModule.slug}`}> { noteModule.title } </a>
+        </li>
+      ))}
+    </ul>
+  )
 }
