@@ -38,6 +38,10 @@ export default function HomeScene() {
       headerChildren={
         <div className="flex items-center justify-between flex-grow px-3">
           <h1 className="text-lg">{ title }</h1>
+
+          <a target="_blank" rel="noopener noreferrer" class="text-blue-600 underline" href="https://github.com/JacobParis/garden">
+            Source
+          </a>
         </div>
       }
       sidebarChildren={
