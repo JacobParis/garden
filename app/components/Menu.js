@@ -68,7 +68,7 @@ export default function Menu({ sidebarChildren = null, headerChildren = null, ch
           {!isStatic && (
             <button
               tabIndex="1"
-              aria-hidden={isClosed}
+              aria-hidden={!isClosed}
               className="w-10 p-1"
               aria-label="Open menu"
               title="Open menu"
