@@ -1,5 +1,9 @@
 module.exports = {
-  purge: [],
+  purge: [
+    './app/**/*.mdx',
+    './src/**/*.js',
+    './src/**/*.html',
+  ],
   theme: {
     extend: {
       typography: {
