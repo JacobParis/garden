@@ -1,0 +1,431 @@
+Given a library of calculations, I want to figure out what the raw dependencies that need to be passed in as arguments to each one should be.
+
+For example, this calculation only needs `mortgage.mortgageAmountDollars` and `product.monthlyMortgagePaymentFactor`
+
+```js
+exports.getMonthlyPaymentDollarsAtPostedRate = ({ product, mortgage }) => {
+  return chain(mortgage.mortgageAmountDollars)
+    .multiply(product.monthlyMortgagePaymentFactor)
+    .done()
+}
+```
+
+This function, however, needs both its own dependency of `mortgage.mortgageAmountDollars` **and** every dependency of `getMonthlyMortgagePaymentFactorAtContractedRate`
+
+```js
+exports.getMonthlyPaymentDollarsAtContractedRate = ({ product, mortgage }) => {
+  const mortgagePaymentFactorAtContractedRate = exports.getMonthlyMortgagePaymentFactorAtContractedRate({ product, mortgage })
+
+  return chain(mortgage.mortgageAmountDollars)
+    .multiply(mortgagePaymentFactorAtContractedRate)
+    .done()
+}
+```
+
+There are hundreds of these functions, all pure in the sense that they only call other pure functions and there are no circular dependencies. For demonstration, here are some more examples
+
+```js
+exports.getLtv = ({ mortgage }) => {
+  return chain(mortgage.mortgageAmountDollars)
+    .divide(mortgage.mortgageAmountDollars + mortgage.downPaymentDollars)
+    .done()
+}
+
+exports.getTds = ({ product, mortgage }) => {
+  const gds = exports.getGds({ product, mortgage })
+
+  return chain(mortgage.borrowerObligationsMonthlyDollars)
+    .divide(mortgage.borrowerIncomeYearlyDollars / 12 + mortgage.propertyIncomeMonthlyDollars)
+    .add(gds)
+    .done()
+}
+
+exports.getGds = ({ product, mortgage }) => {
+  const monthlyPaymentDollars = exports.getMonthlyPaymentDollarsAtStressTestRate({ product, mortgage })
+
+  const monthlyExpensesDollars = chain(monthlyPaymentDollars)
+    .add(mortgage.propertyHeatMonthlyDollars)
+    .add(mortgage.propertyTaxMonthlyDollars)
+    .add(mortgage.propertyFeesMonthlyDollars)
+    .done()
+
+  return chain(monthlyExpensesDollars)
+    .divide(mortgage.borrowerIncomeYearlyDollars / 12 + mortgage.propertyIncomeMonthlyDollars)
+    .done()
+}
+
+exports.getTotalInterestFromNowUntilEndOfTerm = ({ product, mortgage }) => {
+  const loanBalanceAsOfEndOfTerm = exports.getLoanBalanceAsOfEndOfTerm({ product, mortgage })
+  const totalPaymentFromNowUntilEndOfTerm = exports.getTotalPaymentFromNowUntilEndOfTerm({ product, mortgage })
+
+  return chain(loanBalanceAsOfEndOfTerm)
+    .add(totalPaymentFromNowUntilEndOfTerm)
+    .subtract(mortgage.mortgageAmountDollars)
+    .done()
+}
+
+exports.getMonthlyPaymentDollarsAtStressTestRate = ({ product, mortgage }) => {
+  return chain(mortgage.mortgageAmountDollars)
+    .multiply(product.monthlyMortgagePaymentFactorAtStressTestRate)
+    .done()
+}
+exports.getMaximumLoanDollarsBasedOnTds = ({ product, mortgage }) => {
+  return chain(product.tdsMax)
+    .multiply(mortgage.borrowerIncomeYearlyDollars)
+    .divide(12)
+    .subtract(mortgage.borrowerObligationsMonthlyDollars)
+    .subtract(mortgage.propertyHeatMonthlyDollars)
+    .subtract(mortgage.propertyTaxMonthlyDollars)
+    .subtract(mortgage.propertyFeesMonthlyDollars)
+    .add(mortgage.propertyIncomeMonthlyDollars)
+    .multiply(product.monthlyLoanAmountFactorAtStressTestRate)
+    .done()
+}
+
+exports.getMonthlyPaymentDollarsAtPostedRateGivenMaximumLoanBasedOnTds = ({ product, mortgage }) => {
+  const maximumLoanDollarsBasedOnTds = exports.getMaximumLoanDollarsBasedOnTds({ product, mortgage })
+
+  return chain(maximumLoanDollarsBasedOnTds)
+    .multiply(product.monthlyMortgagePaymentFactorAtPostedRate)
+    .done()
+}
+
+exports.getMaximumLoanDollarsBasedOnTdsAndTax = ({ product, mortgage }) => {
+  const propertyTaxRateMonthly = chain(0.01)
+    .divide(12)
+    .done()
+
+  return chain(product.tdsMax)
+    .multiply(mortgage.borrowerIncomeYearlyDollars)
+    .divide(12)
+    .subtract(mortgage.borrowerObligationsMonthlyDollars)
+    .subtract(mortgage.downPaymentDollars * propertyTaxRateMonthly)
+    .subtract(mortgage.propertyHeatMonthlyDollars)
+    .subtract(mortgage.propertyFeesMonthlyDollars)
+    .add(mortgage.propertyIncomeMonthlyDollars)
+    .divide(product.monthlyMortgagePaymentFactorAtStressTestRate + propertyTaxRateMonthly)
+    .done()
+}
+
+exports.getMonthlyPaymentDollarsAtPostedRateGivenMaximumLoanBasedOnTdsAndTax = ({ product, mortgage }) => {
+  const maximumLoanDollarsBasedOnTdsAndTax = exports.getMaximumLoanDollarsBasedOnTdsAndTax({ product, mortgage })
+
+  return chain(maximumLoanDollarsBasedOnTdsAndTax)
+    .multiply(product.monthlyMortgagePaymentFactorAtPostedRate)
+    .done()
+}
+
+exports.getMaximumLoanDollars = ({ product, mortgage }) => {
+  const maximumLoanDollarsBasedOnLtv = exports.getMaximumLoanDollarsBasedOnLtv({ product, mortgage })
+  const maximumLoanDollarsBasedOnGds = exports.getMaximumLoanDollarsBasedOnGds({ product, mortgage })
+  const maximumLoanDollarsBasedOnGdsAndTax = exports.getMaximumLoanDollarsBasedOnGdsAndTax({ product, mortgage })
+  const maximumLoanDollarsBasedOnTds = exports.getMaximumLoanDollarsBasedOnTds({ product, mortgage })
+  const maximumLoanDollarsBasedOnTdsAndTax = exports.getMaximumLoanDollarsBasedOnTdsAndTax({ product, mortgage })
+
+  return Math.min(...[
+    maximumLoanDollarsBasedOnLtv,
+    maximumLoanDollarsBasedOnGds,
+    maximumLoanDollarsBasedOnGdsAndTax,
+    maximumLoanDollarsBasedOnTds,
+    maximumLoanDollarsBasedOnTdsAndTax
+  ])
+}
+
+exports.getAmortizationRemainingMonths = ({ product, mortgage, currentDate }) => {
+  const monthsBetweenEpochAndNow = chain(currentDate.getFullYear())
+    .multiply(12)
+    .add(currentDate.getMonth())
+    .add(1)
+    .done()
+
+  const monthsBetweenEpochAndEnd = chain(mortgage.mortgageStartDate.getFullYear())
+    .multiply(12)
+    .add(mortgage.mortgageStartDate.getMonth())
+    .add(product.amortizationMonths)
+    .done()
+
+  return monthsBetweenEpochAndEnd - monthsBetweenEpochAndNow
+}
+
+exports.getAmortizationRemainingMonthsAfterPrepayment = ({ product, mortgage, currentDate }) => {
+  const loanBalanceAfterPrepayment = exports.getLoanBalanceAfterPrepayment({ product, mortgage, currentDate })
+  const contractedRateMonthly = exports.getContractedRateMonthly({ product, mortgage })
+  const monthlyMortgagePaymentDollars = exports.getMonthlyPaymentDollarsAtContractedRate({ product, mortgage })
+
+  return chain(loanBalanceAfterPrepayment)
+    .multiply(contractedRateMonthly)
+    .multiply(-1)
+    .divide(monthlyMortgagePaymentDollars)
+    .add(1)
+    .log()
+    .multiply(-12)
+    .divide(product.paymentPeriodsPerYear)
+    .divide(log1p(contractedRateMonthly))
+    .floor()
+    .done()
+}
+
+
+exports.getPenaltyDollarsByThreeMonthsInterest = ({ product, mortgage, currentDate }) => {
+  const loanBalanceAfterPrepayment = exports.getLoanBalanceAfterPrepayment({ product, mortgage, currentDate })
+  const loanBalanceAfterPrepaymentAfterThreeMonths = exports.getLoanBalanceAfterPrepaymentAfterThreeMonths({ product, mortgage, currentDate })
+  const monthlyMortgagePaymentDollars = exports.getMonthlyPaymentDollarsAtContractedRate({ product, mortgage })
+
+  return chain(loanBalanceAfterPrepaymentAfterThreeMonths)
+    .add(monthlyMortgagePaymentDollars * 3)
+    .subtract(loanBalanceAfterPrepayment)
+    .done()
+}
+
+exports.getIrdTermRemainingYears = ({ product, mortgage, currentDate }) => {
+  const termRemainingMonths = exports.getTermRemainingMonths({ product, mortgage, currentDate })
+
+  return chain(termRemainingMonths)
+    .subtract(3)
+    .divide(12)
+    .ceil()
+    .done()
+}
+
+exports.getPenaltyRateByIrdByPostedRate = ({ product, mortgage }) => {
+  return chain(product.effectiveRate)
+    .subtract(mortgage.remainingTermRate)
+    .done()
+}
+
+exports.getPenaltyDollarsByPostedRate = ({ product, mortgage, currentDate }) => {
+  const penaltyRateByIrdByPostedRate = exports.getPenaltyRateByIrdByPostedRate({ product, mortgage })
+  const loanBalanceAfterPrepayment = exports.getLoanBalanceAfterPrepayment({ product, mortgage, currentDate })
+  const termRemainingMonths = exports.getTermRemainingMonths({ product, mortgage, currentDate })
+
+  return chain(penaltyRateByIrdByPostedRate)
+    .multiply(loanBalanceAfterPrepayment)
+    .multiply(termRemainingMonths)
+    .divide(12)
+    .done()
+}
+
+exports.getTotalInterestSavingsDollars = ({ product, mortgage, currentDate }, newProduct) => {
+  const totalInterestFromNowUntilEndOfTerm = exports.getTotalInterestFromNowUntilEndOfTerm({ product, mortgage, currentDate })
+  const newInterestToEndOfTerm = exports.getNewInterestToEndOfTerm({ product, mortgage, currentDate }, newProduct)
+
+  return chain(totalInterestFromNowUntilEndOfTerm)
+    .subtract(newInterestToEndOfTerm)
+    .done()
+}
+
+exports.getLtvMaxDistance = ({ product, mortgage }) => {
+  const ltv = exports.getLtv({ mortgage })
+
+  return ltv - product.ltvMax
+}
+
+exports.getLtvValidity = ({ product, mortgage }) => {
+  const ltvMinDistance = exports.getLtvMinDistance({ product, mortgage })
+  const ltvMaxDistance = exports.getLtvMaxDistance({ product, mortgage })
+
+  return ltvMinDistance > 0 && ltvMaxDistance < 0
+}
+
+exports.getCreditScoreNearness = ({ product, borrower }) => {
+  const creditScoreMinDistance = exports.getCreditScoreMinDistance({ product, borrower })
+
+  return creditScoreMinDistance > -40
+}
+```
+
+I have this library of calculations, and a few different endpoints that run different batches of calculations. As my use-cases grow, it's starting to get awkward having to come up with a new serverside endpoint for each permutation of these calculations. Shouldn't the client be in charge of deciding which ones it wants to run?
+
+To do that, I can't hide behind the safety of a set of required fields that are good enough for all of them. I need to know what information each function in particular needs to be provided.
+
+The end result will be a suite of GraphQL resolvers shaped like this
+
+```js
+  totalTermInterestDollarsAtPostedRate: ({ product, mortgage, currentDate }) => {
+    if (!mortgage.mortgageAmountDollars) return 'Missing field: mortgageAmountDollars'
+    if (!product.amortizationMonths) return 'Missing field: amortizationMonths'
+    if (!product.compoundingPeriodsPerYear) return 'Missing field: compoundingPeriodsPerYear'
+    if (!product.lender) return 'Missing field: lender'
+    if (!product.paymentPeriodsPerYear) return 'Missing field: paymentPeriodsPerYear'
+    if (!product.postedRate) return 'Missing field: postedRate'
+    if (!product.rateType) return 'Missing field: rateType'
+    if (!product.termMonths) return 'Missing field: termMonths'
+
+    return Calculations.getTotalTermInterestDollarsAtPostedRate({ product, mortgage, currentDate })
+  },
+```
+
+where `Calculations` is the file with hundreds of functions I showed at the beginning of this post. My workflow will be to paste that entire file as a string into a variable, and use javascript to parse the functions, find the dependencies, and output new code as a string that guards all the missing fields.
+
+I will then copy that generated code and paste it into my IDE.
+
+# And so we begin
+
+The first thing I need to do is split the giant js file into functions. Not all empty lines are delimiters here, but there don't seem to be any closing braces immediately followed by a line break except at the end of each function.
+
+I can split the file based on that and then add the closing brace back in
+
+```js
+const functions = file.split('}\n').map(func => `${func}}`)
+```
+
+This code only needs to be as good as the product it outputs, so ugly unmaintainable patterns and poorly named variables are free game here. I'm coding this in the developer console.
+
+The first thing I want is the name of the function. The key name is going to be `totalTermInterestDollarsAtPostedRate` and internally it's going to be calling `Calculations.getTotalTermInterestDollarsAtPostedRate()`, so I can get those both from the same place
+
+```js
+"exports.getTotalTermInterestDollarsAtPostedRate = ({ product, mortgage, currentDate }) => {…"
+```
+
+We can extract that by taking everything before ` = ` and then further splitting to take everything after the `.`
+
+```js
+let parsed = functions.map(f => {
+  return {
+    name: f.split(' = ')[0].split('.')[1]
+  }
+})
+```
+
+and the same pattern will work for the arguments we're passing in
+
+```js
+let parsed = functions.map(f => {
+  return {
+    name: f.split(' = ')[0].split('.')[1],
+    args: f.split(' = ')[1].split(' => ')[0]
+  }
+})
+```
+
+Again, this is not something I'd ever allow into production code, but we're not building production code here. This is just temporary bad code to help generate good code.
+
+Next thing I need is a list of all the dependencies the function itself has. To distinguish that from the other functions it calls (whose dependencies we'll also need), we'll call this one *primitives* instead
+
+The primitives always follow the same pattern. `mortgage.something` or `product.something`. I can use regex to find every instance of either of those followed by a dot, and then grab the rest of the word
+
+```
+let parsed = functions.map(f => {
+  return {
+    name: f.split(' = ')[0].split('.')[1],
+    args: f.split(' = ')[1].split(' => ')[0],
+    primitives: f.match(/(mortgage|product)\.\w+/g)
+  }
+})
+```
+
+The last thing we need to read out is the internal function calls. Every function starts with `get`, so it's almost as simple as just grabbing all of those. We just need to make sure we skip the first one, since a function isn't its own dependency.
+
+```
+let parsed = functions.map(f => {
+  return {
+    name: f.split(' = ')[0].split('.')[1],
+    args: f.split(' = ')[1].split(' => ')[0],
+    primitives: f.match(/(mortgage|product)\.\w+/g),
+    dependencies: f.match(/(get)\w+/g).slice(1)
+  }
+})
+
+/*
+{
+  name: 'getTotalTermInterestDollarsAtPostedRate',
+  args: '({ product, mortgage, currentDate })`,
+  primitives: ['mortgage.mortgageAmountDollars, product.postedRate'],
+  dependencies: ['getLoanBalanceAsOfEndOfTerm', 'getTotalTermPaymentBalance']
+}
+*/
+```
+
+Walking through these dependencies will take a recursive function since we don't know how many layers of depth there'll be, but the basic principle is that if it has a dependency, step into that function, and if it doesn't, return the primitives. Eventually we'll get to the bottom of the chain where there are no more dependencies, and it'll return the primitives to the next layer up, then grab those primitives and hop up one more layer, and so on until we're at the root level again.
+
+There are two caveats here: some of the functions have date math, which has similarly named functions that we captured as dependencies but we want to skip over
+
+and our result set is going to have tons of duplicates, since it'll catch every use of a variable individually. But that's ok
+
+```js
+function parse(calculation) {
+  const dependencies = calculation.dependencies.flatMap(dependency => {
+    if (dependency === 'getMonth') return []
+    if (dependency === 'getFullYear') return []
+
+    return parse(parsed.find(f => f.name === dependency))
+  })
+
+  return [...dependencies, ...(calculation.primitives || [])]
+}
+```
+
+To run this, we'll map our previous parsed object to add a new `required` field that contains the result of this recursive parsing. `Array.from(new Set())` is a common pattern to remove duplicates, since set items must be unique.
+
+```js
+const calcs = parsed.map(f => ({
+  ...f,
+  required: Array.from(new Set(parse(f))).sort()
+}))
+
+/*
+{
+  name: 'getTotalTermInterestDollarsAtPostedRate',
+  args: '({ product, mortgage, currentDate })`,
+  primitives: ['mortgage.mortgageAmountDollars, product.postedRate'],
+  dependencies: ['getLoanBalanceAsOfEndOfTerm', 'getTotalTermPaymentBalance'],
+  required: [
+    'mortgage.mortgageAmountDollars',
+    'product.amortizationMonths', 
+    'product.compoundingPeriodsPerYear', 
+    'product.paymentPeriodsPerYear',
+    'product.postedRate',
+    'product.rateType', 
+    'product.termMonths'
+  ]
+}
+*/
+```
+
+The last piece of info we need is the field name, which is just the function name without the `get` and then camelcased again
+
+```js
+calcs.map(calc => {
+  const fieldName = calc.name.split('get')[1]
+  const formattedFieldName = fieldName.slice(0, 1).toLowerCase() + fieldName.slice(1)
+
+  const conditions = calc.required.map(condition => {
+    const [field] = condition.split('.').reverse()
+
+    return `if (!${condition}) return 'Missing field: ${field}'`
+  }).join('\n')
+
+  return `
+    ${formattedFieldName}: ${calc.args} => {
+      ${conditions}
+
+      return Calculations.${calc.name}${calc.args}
+    },
+  `
+}).sort()
+```
+
+And that leaves us with an array of strings that look like this
+
+```js
+totalTermInterestDollarsAtPostedRate: ({ product, mortgage, currentDate }) => {
+  if (!mortgage.mortgageAmountDollars) return 'Missing field: mortgageAmountDollars'
+  if (!product.amortizationMonths) return 'Missing field: amortizationMonths'
+  if (!product.compoundingPeriodsPerYear) return 'Missing field: compoundingPeriodsPerYear'
+  if (!product.lender) return 'Missing field: lender'
+  if (!product.paymentPeriodsPerYear) return 'Missing field: paymentPeriodsPerYear'
+  if (!product.postedRate) return 'Missing field: postedRate'
+  if (!product.rateType) return 'Missing field: rateType'
+  if (!product.termMonths) return 'Missing field: termMonths'
+
+  return Calculations.getTotalTermInterestDollarsAtPostedRate({ product, mortgage, currentDate })
+},
+```
+
+Since I'm doing this in the browser console, I can use the copy() function to copy a value to the clipboard. I can either wrap the previous map and run it again, or use Chrome's *last value* shorthand `$_`
+
+```js
+copy($_)
+```
+
+And I'm ready to paste into VS Code 
