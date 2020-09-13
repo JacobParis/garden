@@ -1,0 +1,66 @@
+export const title = 'User Action Library'
+
+I'm thinking of writing a more declarative user interaction library that wraps user-event
+so instead of click and type, you can check and uncheck and set text and so on for all the different input types
+and it will do the actions required to get it into that state
+
+That way you can look at a form and say check these 3 boxes and uncheck those 2, regardless of what their default states are
+If the box is checked by default it'll do nothing
+
+> X: I have the impression user-event would be this library and that's the most "declarative" it can get from an user interaction perspective
+
+user event is still imperative, it's just imperative from the user's point of view rather than the dom's
+
+If you want to ensure that checkbox is selected, you need to test its value and if checked, click it
+
+a real user doesn't think in terms of which elements they need to click, they think in terms of what the form state should end up being
+
+> X: imagine you have some code where the checkbox starts unchecked, and checking it triggers some action if your test just cares about "making this box checked", and a code change breaks the expectation that the box should be unchecked, you won't catch the issue now if you say "click the box" and all of a sudden it's unchecked instead of checked some change caused it
+
+But that's also wrong
+
+If you're testing that checking a box produces a side effect, then you can do just that
+
+assert that it's unchecked by default, and then check it
+
+If it starts being checked by default, that side effect isn't going to happen when the user gets there either
+
+> X: I know other libraries do this (I haven't worked with cypress but I think you can ask"make this checked" and that's what you get, and selenium will also do this)
+
+Yeah that's the target attitude I'm looking for
+
+enforce that this checkbox is checked, whether it started that way or not
+
+> X: I get it. I mean, go for it--I wonder if using fireEvent would even make more sense, or would you still want to catch every user event triggered by an actual click if the checkbox state was not the expected one? imagine a box is not checked and you ask the library to make it checked: user-event will trigger a bunch of dom events to change the checkbox state
+
+Yes that's expected
+```js
+import user from 'user-event' 
+
+export check(element) {
+  if (!element.checked) return
+
+  return user.click(element)
+}
+
+export uncheck(element) {
+  if (element.checked) return
+
+  return user.click(element)
+}
+```
+
+> X: got it
+
+Text inputs would be a little tricky, because the way users modify those to get to a specific target value varies wildly and it's not realistic to support all of them
+safest bet is to clear beforehand and then type
+
+> X: I actually just thought this could be a solution for an issue I had where I needed to fill 10s of fields with a lot of stuff happening on user interactions, and I saw myself writing multiple "fillForms" helpers to get the form to the state i wanted to test some specific behavior
+
+it'd be super fancy to for setText('apple') on an input with value 'apples' to just backspace once, but any bugs surfaced by that would be extremely opaque
+Like yes it's a good thing we caught it, but there's no way anyone is gonna know that's why their test failed
+
+> X: yeah that's why I think other libs will go super lower level and just change the attributes in the dom elements and call it a day
+
+most of that should always "just work" anyway, unless you're actually developing on the input components
+in which case you wouldn't be using something like this anyway
