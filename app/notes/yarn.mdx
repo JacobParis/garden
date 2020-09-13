@@ -1,0 +1,6 @@
+export const title = 'Yarn'
+
+#yarn
+
+* if I forget to add .npmrc to a project to set up correct registry (for work vs open source), and then switch to the correct registry, yarn.lock will switch while package-lock.json will be stuck until I perform some black magic rituals (clear the cache and delete node_modules)
+* also possible to add manual resolutions into package.json with yarn, which might be useful for forcing new version of transient dependencies reported unfixed by  npm audit fix (resolutions are simpler than explaining "we don't actually use the vulnerable code in production build" to some security departments)
