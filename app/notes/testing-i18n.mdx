@@ -1,0 +1,10 @@
+export const title = "Testing translated strings"
+
+There's two main approaches here:
+
+One is to test in all English (or any other language) and assume the other languages work because your i18n lib is already tested
+
+The other is to import the locale strings into your test file and use those to query your elements
+so instead of `getByRole('button', { name: /login/i }` it's `{ name: Strings.LOGIN }`
+
+The fuzzy matching with regex is no longer needed because when you update the copy, the test will already be updated and also you have the option of running your tests for every language  automatically
