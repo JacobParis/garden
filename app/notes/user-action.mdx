@@ -55,9 +55,8 @@ export uncheck(element) {
 Text inputs would be a little tricky, because the way users modify those to get to a specific target value varies wildly and it's not realistic to support all of them
 safest bet is to clear beforehand and then type
 
-> X: I actually just thought this could be a solution for an issue I had where I needed to fill 10s of fields with a lot of stuff happening on user interactions, and I saw myself writing multiple "fillForms" helpers to get the form to the state i wanted to test some specific behavior
-
 it'd be super fancy to for setText('apple') on an input with value 'apples' to just backspace once, but any bugs surfaced by that would be extremely opaque
+
 Like yes it's a good thing we caught it, but there's no way anyone is gonna know that's why their test failed
 
 > X: yeah that's why I think other libs will go super lower level and just change the attributes in the dom elements and call it a day
