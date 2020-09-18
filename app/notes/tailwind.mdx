@@ -16,3 +16,13 @@ Some css patterns made of multiple rules are a single tailwind class, like `.ins
 ```
 
 Tailwind itself is strictly CSS. Bootstrap comes with loads of javascript components, but Tailwind UI components are just html with classes pre-applied 
+
+## Configuration
+
+The Tailwind command line can initialize a new Tailwind config file. After running this command, Tailwind generates what is essentially a gigantic javascript object containing values for colors, spacing, scales, and more.
+
+```sh
+./node_modules/.bin/tailwind init tailwind.config.js
+```
+
+Since this file contains all the defaults, generating it won't be any different from not generating it, until you start to modify it.
