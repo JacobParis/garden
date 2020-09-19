@@ -20,3 +20,11 @@ const context = React.useContext(Context)
 
 It's a good idea to throw an error manually when context is being used outside of its provider
 
+To set the DevTools name of context providers and consumers, use the displayName property
+```js
+const MyContext = React.createContext()
+MyContext.displayName = 'MyContext'
+```
+
+Export dispatch from your context modules instead of abstracting it into helpers
+
