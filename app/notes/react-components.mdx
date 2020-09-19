@@ -1,0 +1,17 @@
+export const title = "React components"
+
+By mapping over the children of a component, you can pass props down to them
+
+You can assemble an allow-list of specific subcomponents to pass data to, while leaving foreign children untouched
+
+```js
+const allowedTypes = [ToggleOn, ToggleOff, ToggleButton]
+
+return React.Children.map((child) => {
+  if (allowedTypes.includes(child.type)) {
+    return React.cloneElement(child, props)
+  }
+
+  return child
+})
+```
