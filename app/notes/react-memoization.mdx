@@ -1,0 +1,9 @@
+export const title = 'React memoization'
+
+> Performance optimizations ALWAYS come with a cost but do NOT always come with a benefit. - Kent C Dodds
+
+When you use a non-primitive prop in a dependency array, the parent component should be wrapping it in React.useMemo (for non functions) or React.callback (for functions)
+
+If you need (as proven by metrics) to memoize a component with React.memo, any functions passed as props to the component should be wrapped in React.useCallback
+
+React.useCallback and React.useMemo each have a guaranteed baseline amount of overhead, and they're only worth using when the performance savings of using them outweighs the overhead. In that case, you can use React.useMemo to lazily synchronously get a value protected by a dependency array.
