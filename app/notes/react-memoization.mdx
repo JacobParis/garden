@@ -6,7 +6,20 @@ When you use a non-primitive prop in a dependency array, the parent component sh
 
 If you need (as proven by metrics) to memoize a component with React.memo, any functions passed as props to the component should be wrapped in React.useCallback
 
+React.useCallback and React.useMemo each have a guaranteed baseline amount of overhead, and they're only worth using when the performance savings of using them outweighs the overheaWhen you use a non-primitive prop in a dependency array, the parent component should be wrapping it in React.useMemo (for non functions) or React.callback (for functions)
+
+If you need (as proven by metrics) to memoize a component with React.memo, any functions passed as props to the component should be wrapped in React.useCallback
+
 React.useCallback and React.useMemo each have a guaranteed baseline amount of overhead, and they're only worth using when the performance savings of using them outweighs the overhead. In that case, you can use React.useMemo to lazily synchronously get a value protected by a dependency array.
+
+If you use a function in an effect, all of that function's dependencies need to be passed into the dependency array. 
+
+If there is ever any chance of that function changing between renders, (for example, it's defined within the render function), pass it into the dependency array as well. 
+
+React.useCallback lets you extract that function and its dependencies into a single dependency.d. In that case, you can use React.useMemo to lazily synchronously get a value protected by a dependency array.
+
+If you use a function in an effect, all of that function's dependencies need to be passed into the dependency array. 
+If there is ever any chance of that function changing between renders, (for example, it's defined within the render function), pass it into the dependency array as well. React.useCallback lets you extract that function and its dependencies into a single dependency.
 
 ## Links
 [When to useMemo and useCallback](https://kentcdodds.com/blog/usememo-and-usecallback)
