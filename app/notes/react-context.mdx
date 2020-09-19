@@ -1,0 +1,22 @@
+export const title = 'React context'
+
+Context is for sharing state between tightly coupled components. Often lifting state is preferable to sharing state.
+
+To create:
+```js
+const Context = React.createContext()
+
+ReactDOM.render(
+  <Context.Provider value="This is the context">
+    <App />
+  </Context.Provider>
+)
+```
+
+To use inside a component:
+```js
+const context = React.useContext(Context)
+```
+
+It's a good idea to throw an error manually when context is being used outside of its provider
+
