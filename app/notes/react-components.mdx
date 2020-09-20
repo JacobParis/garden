@@ -15,3 +15,48 @@ return React.Children.map((child) => {
   return child
 })
 ```
+
+Hooks can return a `prop getter` to compose a set of default props from the hook with a set of custom props from the consumer
+```js
+function callAll(...fns) {
+  return (...args) => fns.filter(Boolean).forEach(fn => fn(...args))
+}
+
+function getTogglerProps({ onClick, style, className, ...props }) {
+  return {
+    'aria-pressed': on,
+    style={{...internalStyle, style }}
+    className={[internalClassNames].concat(className).join(' ')}
+    onClick: callAll(onClick, toggle),
+    ...props
+  }
+}
+```
+
+Instead of using your own hook logic (reducer, state machine, etc), you can *invert control* by exporting yours and allow the user to provide their own. Their custom implementation can fall back to your default implementation when they're done messing about.
+
+Normal control
+```js
+function useToggle() {
+  const [state, dispatch] = React.useReducer(toggleReducer, {on: false})
+
+  return state
+}
+
+export { useToggle }
+```
+
+Inverted control
+```js
+function useToggle({ reducer = toggleReducer } = {}) {
+  const [state, dispatch] = React.useReducer(reducer, {on: false})
+
+  return state
+}
+
+export { useToggle, toggleReducer }
+```
+
+Normally we use the reducer to set the new state when an event happens. For controlled components, that same reducer can be used to set the callback value of the onChange handler.
+
+React.useRef can be used to store the initial value for props so changes can be tracked over time.
