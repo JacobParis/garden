@@ -19,6 +19,11 @@ const context = React.useContext(Context)
 ```
 
 It's a good idea to throw an error manually when context is being used outside of its provider
+```js
+const context = React.useContext(Context)
+if (!context) throw Error('Must be used within a provider')
+return context
+```
 
 To set the DevTools name of context providers and consumers, use the displayName property
 ```js
