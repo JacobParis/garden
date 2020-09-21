@@ -1,0 +1,22 @@
+export const title = 'Code splitting'
+
+In DevTools, open the Network tab and then open the secondary "Coverage" menu to see how much of each file is actually being used by the page.
+
+Use dynamic imports to lazy load components
+Wrap dynamic imports in React.lazy to make Suspense boundaries catch them
+```diff
+- import Component from './component'
++ const Component = React.lazy(() => import('./component'))
+```
+```diff
++ <React.Suspense fallback={Spinner}>
+    <Component />
++ </React.Suspense>
+```
+
+Calling `import('./component')` before you want to use it will begin its loading process. Trigger that from a callback as soon as you discover user intent to display a component and it will be ready to go with no visible loading time.
+
+To begin loading a component after the page loads but without any manual triggering, the magic comment `webpackPrefetch` will do that.
+```js
+import(/* webpackPrefetch: true */ './component')
+```
