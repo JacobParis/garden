@@ -1,0 +1,15 @@
+export const title = 'GZIP'
+
+* first indication of gzip working in chrome devtools: the network transferred is lower than the actual resources size
+![network transfer size](https://media.discordapp.net/attachments/486935104384532502/757488157926096978/unknown.png)
+
+* second indication: hover on the size and it will show you the size transferred, vs the actual size of the file. if transferred is less than actual size, compression is happening here
+![compare both sizes](https://media.discordapp.net/attachments/486935104384532502/757488505348685895/unknown.png)
+
+* third indication: click on the file, then look at the content-encoding under Response header
+![content encoding](https://media.discordapp.net/attachments/486935104384532502/757488767861784596/unknown.png)
+
+just in case you are doing your own web sever or local development in the future, note that brotli will only work in HTTPS, whereas gzip can work in HTTP only
+so if you are testing http://localhost/ in your own local dev, you won't be able to confirm your brotli configuration is working unless you do a local self-signed cert
+just an info in case you are dealing with your own web server in the future
+if you are using 3rd party ones, they'll do the things for you so you odn't have to bother :slight_smile:
