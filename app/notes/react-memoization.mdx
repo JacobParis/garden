@@ -21,5 +21,8 @@ React.useCallback lets you extract that function and its dependencies into a sin
 If you use a function in an effect, all of that function's dependencies need to be passed into the dependency array. 
 If there is ever any chance of that function changing between renders, (for example, it's defined within the render function), pass it into the dependency array as well. React.useCallback lets you extract that function and its dependencies into a single dependency.
 
+Using the performance tab, you can record an action and get a graph of how long each function took to execute. This makes it really easy to see where the bottlenecks are and know what to memoize
+
+Test performance in production and incognito for real results that aren't tainted by development tooling and browser extensions
 ## Links
 [When to useMemo and useCallback](https://kentcdodds.com/blog/usememo-and-usecallback)
