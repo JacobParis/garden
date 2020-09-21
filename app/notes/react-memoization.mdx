@@ -24,5 +24,11 @@ If there is ever any chance of that function changing between renders, (for exam
 Using the performance tab, you can record an action and get a graph of how long each function took to execute. This makes it really easy to see where the bottlenecks are and know what to memoize
 
 Test performance in production and incognito for real results that aren't tainted by development tooling and browser extensions
+
+React.memo accepts a second argument as a custom equality function of the form `(prevProps, props) => areEqual`
+
+Consider designing your API so re-rendering can be established as a simple prop comparison. Don't change props if you don't want to trigger a render.
+
+
 ## Links
 [When to useMemo and useCallback](https://kentcdodds.com/blog/usememo-and-usecallback)
