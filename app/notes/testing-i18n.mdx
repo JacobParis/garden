@@ -8,3 +8,5 @@ The other is to import the locale strings into your test file and use those to q
 so instead of `getByRole('button', { name: /login/i }` it's `{ name: Strings.LOGIN }`
 
 The fuzzy matching with regex is no longer needed because when you update the copy, the test will already be updated and also you have the option of running your tests for every language  automatically
+
+It encourages getting all your strings into locale files, since you then can't write your tests without them there, in the same way that accessible testing with TL encourages you to have accessible webapps, because Testing Library's philosophy is that if your page is inaccessible, then your tests MUST fail
