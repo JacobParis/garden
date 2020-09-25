@@ -18,10 +18,13 @@ To use inside a component:
 const context = React.useContext(Context)
 ```
 
-It's a good idea to throw an error manually when context is being used outside of its provider
+It's a good idea to throw an error manually when context is being used outside of its provider. Compare if it's not `undefined` otherwise falsy context values (`0`, `""`, `false`) will throw the provider error by mistake even if you're within the provider.
+
 ```js
 const context = React.useContext(Context)
-if (!context) throw Error('Must be used within a provider')
+
+if (context === undefined) throw Error('Must be used within a provider')
+
 return context
 ```
 
@@ -33,3 +36,44 @@ MyContext.displayName = 'MyContext'
 
 Export dispatch from your context modules instead of abstracting it into helpers
 
+To pass `useState` or `useReducer` around as context, use separate contexts for the state and setState functions. 
+
+```js
+const AlertMsgDispatchContext = React.createContext();
+const AlertMsgStateContext = React.createContext();
+
+const AlertMsgProvider = ({ children }) => {
+  const [alertMsg, setAlertMsg] = React.useState("This is not a drill");
+
+  return (
+    <AlertMsgDispatchContext.Provider value={setAlertMsg}>
+      <AlertMsgStateContext.Provider value={alertMsg}>
+        {children}
+      </AlertMsgStateContext.Provider>
+    </AlertMsgDispatchContext.Provider>
+  );
+};
+
+const useAlertMsgState = () => {
+  const context = React.useContext(AlertMsgStateContext);
+
+  if (context === undefined) {
+    throw new Error(
+      "useAlertMsgState must be used within the AlertMsgProvider"
+    );
+  }
+  return context;
+};
+
+const useAlertMsgDispatch = () => {
+  const context = React.useContext(AlertMsgDispatchContext);
+  if (context === undefined) {
+    throw new Error(
+      "useAlertMsgDispatch must be used within the AlertMsgProvider"
+    );
+  }
+  return context;
+};
+
+export { useAlertMsgState, useAlertMsgDispatch, AlertMsgProvider };
+```
