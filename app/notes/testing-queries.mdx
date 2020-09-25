@@ -1,0 +1,11 @@
+export const title = 'Testing queries'
+
+This is explained in the course but to give a quick overview: Testing has tradeoffs. When tests pass or fail, that has implications over your system
+If you make a change that breaks your application's functionality, but the tests keep passing, that's a false positive
+If you make a change that is inconsequential, but but the tests start failing, that's a false negative
+A big part of what Testing Library aims to solve is eliminating false negatives: that is, you build resilient tests that allow you to refactor your code without breaking the tests
+So if I have a regular input, and I want to swap that out for a CurrencyInput component that has dollar sign formatting, or maybe we want to move it somewhere else in the form
+As long as it's accessible and the label is roughly accurate, then getByRole('textbox', { name: /name/i }) is going to find the input
+Whether it's called name or username or display name or first name
+Now if you just had a testid on there, and its label was changed to password or to email, your test would keep passing: false positive (because a user isn't going to be able to fill the form correctly)
+Or you copy/paste that chunk of form to another page to rename a bunch because there's another similarly styled form
