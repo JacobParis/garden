@@ -1,0 +1,42 @@
+
+```js
+const lines = [
+  'once upon a midnight dreary',
+  'while I pondered weak and weary',
+  'over many a quaint and curious',
+  'volume of forgotten lore'
+]
+
+function sample(array) {
+  const randomIndex = Math.floor(Math.random() * array.length)
+
+  return array[randomIndex]
+}
+```
+
+```js
+console.log(sample(lines))
+// "while I pondered weak and weary"
+```
+
+If your question is how to load the lines from separate text file, the EASIEST way is to instead make that a javascript module
+
+`lines.js` (notice the quotes here on the first and last lines are backticks not apostrophes)
+```js
+module.exports = `
+Once upon a midnight dreary, while I pondered, weak and weary,
+Over many a quaint and curious volume of forgotten lore—
+    While I nodded, nearly napping, suddenly there came a tapping,
+As of some one gently rapping, rapping at my chamber door.
+“’Tis some visitor,” I muttered, “tapping at my chamber door—
+            Only this and nothing more.”
+`
+``` 
+
+And then you import it into your file that sends the messages
+```js
+const lines = require('./lines.js')
+  .split("\n") // Split into an array on each newline
+  .map(line => line.trim()) // Remove space from start and end of line
+  .filter(Boolean) // Remove empty lines
+```
