@@ -2,3 +2,128 @@ export const title = 'Screenshot to clipboard and file'
 
 Open **Automator**
 
+![image](https://user-images.githubusercontent.com/5633704/94887160-912e9080-0443-11eb-852a-dfcd231e2680.png)
+
+Choose **Quick Action**
+
+![image](https://user-images.githubusercontent.com/5633704/94887216-bc18e480-0443-11eb-8b76-195aa435933c.png)
+
+Set workflow receives **no input** for **any application**
+
+![image](https://user-images.githubusercontent.com/5633704/94887250-d8b51c80-0443-11eb-8a64-d69dcc982495.png)
+
+Drag **Run AppleScript** into the drop area
+
+![image](https://user-images.githubusercontent.com/5633704/94887286-f97d7200-0443-11eb-9949-bcccaef695b0.png)
+
+Add the code:
+```applescript
+on run {input, parameters}
+	
+	--  # Screen Shot to Clipboard and File
+	
+	--  # Clear the clipboard so the 'repeat until isReady ...' loop works properly.
+	
+	set the clipboard to ""
+	
+	--  # Copy picture of selected area to the clipboard, press: ⌃⇧⌘4
+	--  # Note that on my system I need to keystroke '$' instead of '4'.
+	--  # I assume this is because the 'shift' key is being pressed.        
+	
+	tell application "System Events"
+		keystroke "$" using {control down, shift down, command down}
+	end tell
+	
+	--  # Wait while user makes the selection and releases the mouse or times out.
+	--  # Note that the time out also acts as an escape key press of sorts. In other
+	--  # words, if the user actually presses the escape key it has no effect on this
+	--  # script like it would if pressing the normal shortcut outside of the script.
+	--  #       
+	--  # As coded, the time out is 5 seconds. Adjust 'or i is greater than 10' and or  
+	--  # 'delay 0.5' as appropriate for your needs to set a different length time out.
+	--  # This means, as is, you have 5 seconds to select the area of the screen you
+	--  # want to capture and let go of the mouse button, otherwise it times out.
+	
+	set i to 0
+	set isReady to false
+	repeat until isReady or i is greater than 10
+		delay 0.5
+		set i to i + 1
+		set cbInfo to (clipboard info) as string
+		if cbInfo contains "class PNGf" then
+			set isReady to true
+		end if
+	end repeat
+	if not isReady then
+		--  # User either pressed the Esc key or timed out waiting.
+		return --  # Exit the script without further processing.
+	end if
+	
+	--  # Build out the screen shot path filename so its convention is of 
+	--  # the default behavior when saving a screen shot to the Desktop.
+	
+	set theDateTimeNow to (do shell script "date \"+%Y-%m-%d at %H.%M.%S %p\"")
+	set theFilename to "Screen Shot " & theDateTimeNow & ".png"
+	set thePathFilename to "/Users/jacobparis/Snapshots/" & theFilename
+	
+	--  # Retrieve the PNG data from the clipboard and write it to a disk file.
+	
+	set pngData to the clipboard as «class PNGf»
+	delay 0.5
+	try
+		set fileNumber to open for access thePathFilename with write permission
+		write pngData to fileNumber
+		close access fileNumber
+	on error eStr number eNum
+		try
+			close access fileNumber
+		end try
+		activate
+		display dialog eStr & " number " & eNum buttons {"OK"} default button 1 with title "File I/O Error..." with icon caution
+	end try
+	
+	--  # Convert the POSIX path filename to an alias.
+	
+	set thePathFilename to POSIX file thePathFilename as alias
+	
+	--  # Hide the file extension as is the default.
+	
+	tell application "Finder"
+		try
+			set extension hidden of thePathFilename to true
+		end try
+	end tell
+	
+end run
+```
+
+A bit past halfway, replace the screenshot path with your desired location
+
+```diff
+- set thePathFilename to "/Users/jacobparis/Snapshots/" & theFilename
++ set thePathFilename to "/Users/yourname/Desktop/" & theFilename
+```
+
+**Save the file** as `Screen Shot to Clipboard and File`
+
+## Add permissions
+
+Go to **System Preferences > Security & Privacy > Privacy**
+
+Under **Accessibility**, ensure Automator is in the list
+
+![image](https://user-images.githubusercontent.com/5633704/94887626-d56e6080-0444-11eb-8752-5054b0a37adf.png)
+
+Go to **System Preferences > Keyboard > Shortcuts > Screenshots**
+
+Remove the shortcut for **Save picture of selected area as a file**
+
+![image](https://user-images.githubusercontent.com/5633704/94887673-f2a32f00-0444-11eb-8990-cd6bac1eb107.png)
+
+Go to **System Preferences > Keyboard > Shortcuts > Services**
+
+Scroll to the bottom of the list and set the shortcut for **Screen Shot to Clipboard and File** to **CMD+SHIFT+4**
+
+![image](https://user-images.githubusercontent.com/5633704/94887731-15354800-0445-11eb-97c2-b208878c3d4d.png)
+
+Now if you take a screenshot it will save it as a file in your desired location while also copying the image to clipboard
