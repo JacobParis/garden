@@ -1,0 +1,72 @@
+export const title = 'Trying to skip dependencies'
+
+# Question
+
+I want this effect to run only when cardData changes but if i pass retrial as dependency it runs on every change of retrial count which is not what i want
+
+```js
+const CardSwipe = () => {
+    const [retrials, setRetrials] = useState(0)
+    const cardData = useCardState()
+
+    useEffect(() => {
+        //request only if card is not valid and retrials are less than 3
+        
+       if(cardData.isNotValid && retrial < 3){
+            requestNewCard() // this enables the cardReader asking cutomer to swipe/insert
+            setRetrials(c => c + 1 )
+        } else {
+            //card is Valid send to authorization page
+            history.push("/authPage")
+        }
+
+    }, [cardData]) // So can i exclude 'retrial' here ??
+
+    if (retrial >= 3) return (<h1>Some Error Msg</h1>)
+
+    return (
+        <h1> Please swipe/insert your card</h1>
+    )
+}
+```
+
+# Answer
+
+The problem is that what you want isn't being accurately described by state
+
+There are some times when cardData is not valid and retrial is less than 3 where you do want it to request a new card, and there are times when those are true and you don't. That means there isn't enough information for React to work
+
+The easy way is make a new boolean that tracks whether you've checked the result or not. Only grab a new card if you've checked the current one and then set it to false after.
+
+```diff
+    useEffect(() => {
+        //request only if card is not valid and retrials are less than 3
+        
+       if(cardData.isNotValid && cardData.hasChecked && retrial < 3){
+            requestNewCard() // this enables the cardReader asking cutomer to swipe/insert
++           cardData.hasChecked = false
+            setRetrials(c => c + 1 )
+        } else {
+            //card is Valid send to authorization page
+            history.push("/authPage")
+        }
+-    }, [cardData]) // So can i exclude 'retrial' here ??
++    }, [cardData.isNotValid, cardData.hasChecked, retrial])
+```
+
+A better way would be to use a state enum, so instead of cardData.isNotValid which can only be true or false, you have cardData.state which can be IDLE, VALID, or INVALID (possibly PENDING if it's async)
+
+```js
+React.useEffect(() => {
+  if (cardData.state === 'INVALID' && retrial < 3) {
+    requestNewCard()
+
+    setRetrials(retrial => retrial + 1)
+    setCardState('IDLE')
+  }
+
+  if (cardData.state === 'VALID') {
+    history.push('/authPage')
+  }
+}, [cardData.state, retrial])
+```
