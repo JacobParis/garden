@@ -1,0 +1,62 @@
+const title = 'Configuring Jest'
+
+## Handling static files
+
+Static files aren't particularly useful to Jest, so they're better left mocked out. Maps are executed in the provided order, so it's important to place these mocks at the top of your `moduleNameMapper` object. If you don't, static files that match any pattern listed above your mock will not be mocked.
+
+```diff
+// package.json
+{
+  "jest": {
+    "moduleNameMapper": {
++     "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
++     "\\.(css|less|scss)$": "<rootDir>/__mocks__/styleMock.js"
+      "^@/(.*)$": "<rootDir>/$1",
+      "^~/(.*)$": "<rootDir>/$1",
+      "^vue$": "vue/dist/vue.common.js",
+    }
+  }
+}
+```
+
+
+And the mock files themselves:
+
+```js
+// __mocks__/styleMock.js
+
+module.exports = {};
+```
+
+```js
+Copy
+// __mocks__/fileMock.js
+
+module.exports = 'test-file-stub';
+```
+
+## Mocking CSS Modules
+
+Replace the styleMock.js with this:
+```js
+// This module returns any key as its value
+
+// Primarily we use it to stub imports Jest doesn't really need to worry about it
+// https://stackoverflow.com/questions/46898638/importing-images-breaks-jest-test
+
+// Examples:
+// obj.a === 'a'
+// obj.b === 'b'
+// obj.cat === 'cat'
+// obj[4] === 4
+
+
+module.exports = new Proxy(
+  {},
+  {
+    get(target, key) {
+      return key === '__esModule' ? false : key
+    },
+  }
+)
+```
