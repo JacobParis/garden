@@ -1,0 +1,46 @@
+export const title = "State++"
+
+## Question
+
+There are no errors, but the state doesn't change when I trigger the action
+```js
+const counter = (state = 0, action)=>{
+    switch(action.type){
+      case "INCREMENT"  :
+        return state++;
+      case "DECREMENT":
+        return state--;
+  
+        default:
+          return state
+    }
+  }
+
+export default counter
+```
+
+## Answer
+
+Try a thing for me
+```diff
+const counter = (state = 0, action)=>{
+    switch(action.type){
+      case "INCREMENT"  :
+-       return state++;
++       return state + 1;
+      case "DECREMENT":
+-       return state--;
++       return state - 1;
+  
+      default:
+        return state
+    }
+  }
+```
+the `++ ` and `--` unary operators are not recommended for a number of reasons. 
+  0. They mutate the value
+  0. If you chain them, it can be hard to know which variable they apply to.
+  0. And most importantly: It's not super grokkable whether you're **incrementing and then returning** or **returning then incrementing**
+
+The latter point is, in fact, the difference between `++state`  and `state++`
+I suspect that replacing replacing yours with `++state`  and `--state`  will solve it for you, but I recommend using neither and instead just + or - 1
