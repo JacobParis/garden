@@ -2,7 +2,7 @@ const title = 'Configuring Jest'
 
 ## Handling static files
 
-Static files aren't particularly useful to Jest, so they're better left mocked out. Maps are executed in the provided order, so it's important to place these mocks at the top of your `moduleNameMapper` object. If you don't, static files that match any pattern listed above your mock will not be mocked.
+Static files aren't particularly useful to Jest, so they're better left mocked out. Maps are executed in the provided order, so it's important to place these mocks at the top of your `moduleNameMapper` object. **If you don't, static files that match any pattern listed above your mock will not be mocked.**
 
 ```diff
 // package.json
