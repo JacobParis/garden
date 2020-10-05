@@ -54,13 +54,10 @@ test() {
 ```js
  it('should fire prevPage event on click', async () => {
    const { emitted } = render(Pagination, { router, store, props });
- 
    const prevPage = screen.getByRole('button', {
      name: /prevpage/i,
    });
- 
    await userEvent.click(prevPage);
- 
    expect(emitted()['prevPage']).toBeTruthy();
  });
 ```
