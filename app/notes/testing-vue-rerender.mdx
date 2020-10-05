@@ -1,0 +1,67 @@
+export const title = 'Rerendering with Vue Testing Library'
+
+> so rerender does not exist on vue testing lib?
+> TypeError: (0 , _vue.rerender) is not a function
+> fails with this
+> how would I provide new set of props in test after rendering once?
+> just render again?
+> if I render again it will put previous render and current render in the some body one after the other
+> how to rerender component again? Im using this in one test, so after each would not help to clear
+
+
+It's called updateProps in vue
+```js
+const { updateProps } = render()
+await updateProps(props)
+```
+
+It's an alias for vue test utils setProps, so I don't know for sure why they didn't rename it to rerender if they're changing it anyway
+but maybe render in vue isn't quite the same metaphor as it is with react
+
+
+> one more question... is it bad idea to test if custom event is emitted? is that like testing implementation details?
+
+
+That depends what you're testing
+
+
+> Im testing pagination component and all it does is to emit custom event
+
+
+If you're building a reusable component and you want that component to be tested in isolation, then you should test that it emits the correct events because that's part of the API
+
+
+> so in this case it should be fine?
+
+
+But if that component is just inside your application and it isn't going to be part of a library, you can get the same code coverage just by making sure it works without testing implementation details
+
+
+> do you know how can I assert that event is properly emitted?
+> ye I hear ya
+
+
+Not 100% sure the vue implementation, but in React I do this by passing a callback that's listening for that event in my test
+```js
+test() {
+  let response = null
+  render(<Button onClick={event => response = event} />)
+  expect(response).toBe(true)
+}
+```
+
+> so I just checked source code... they export emitted as well
+```js
+ it('should fire prevPage event on click', async () => {
+   const { emitted } = render(Pagination, { router, store, props });
+ 
+   const prevPage = screen.getByRole('button', {
+     name: /prevpage/i,
+   });
+ 
+   await userEvent.click(prevPage);
+ 
+   expect(emitted()['prevPage']).toBeTruthy();
+ });
+```
+> so this work
