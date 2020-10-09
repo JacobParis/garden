@@ -1,0 +1,12 @@
+export const title = 'Package lock'
+
+Stephan Meijer
+> 1. If you update the version of a package (npm i my-package) then both package.json and package-lock.json are updated.
+> 
+> 2. If you don't update packages, but run rm -rf node_modules && npm i, package.json stays the same, package-lock.json is updated.
+> 
+> The contents of package-lock.json can differ based on the version of npm used. So it can happen that 2. updates the package-lock.json, even though no packages have been updated. Most devs, won't commit the package-lock.json, but some do.
+> 
+> 3. Running npm i reads package & version data from package.json, and can update package-lock.
+> 
+> 4. Running npm ci ignores package.json , removes node_modules, and installs packages & versions read from package-lock.json
