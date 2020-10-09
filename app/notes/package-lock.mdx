@@ -10,3 +10,10 @@ Stephan Meijer
 > 3. Running npm i reads package & version data from package.json, and can update package-lock.
 > 
 > 4. Running npm ci ignores package.json , removes node_modules, and installs packages & versions read from package-lock.json
+
+Installing using different npm versions can create different package lock files because of differences in the way they've historically handled SSL. An old version might generate some http while a newer one generates https urls for the same package version
+
+Package-lock can update without updating package.json if a new package version is released that still matches the version range specified
+
+- `latest`
+- `^2.16.4` means anything minor or patch later than that (but not 3.x)
