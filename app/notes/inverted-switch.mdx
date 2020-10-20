@@ -1,0 +1,89 @@
+export const title = 'Inverted switch pattern'
+
+A normal switch can look like this
+```js
+switch(color) {
+  case 'red':
+    return 'apple'
+  case 'yellow':
+    return 'banana'
+  default:
+    return null
+}
+```
+
+The inverted switch looks like this
+```js
+switch(true) {
+  case color === 'red':
+    return 'apple'
+  case color === 'yellow':
+    return 'banana'
+}
+```
+
+This is similar to a series of inline if statements
+```js
+if (color === 'red')
+  return 'apple'
+
+if (color === 'yellow')
+  return 'banana'
+```
+
+For if statements to span multiple expressions, they need enclosing braces
+```js
+if (color === 'red') {
+  const apple = getApple()
+  apple.shape = 'round'
+
+  return apple
+}
+
+if (color === 'yellow') {
+  const banana = getBanana()
+  banana.shape = 'banana-shape?'
+
+  return banana
+}
+```
+
+But switch statements can increase in complexity without additional syntax
+```js
+switch(true) {
+  case color === 'red':
+    const apple = getApple()
+    apple.shape = 'round'
+
+    return apple
+
+  case color === 'yellow':
+    const banana = getBanana()
+    banana.shape = 'banana-shape?'
+
+    return banana
+}
+```
+
+To handle OR conditions, if statements require the `||` operator
+```js
+if (color === 'red' || color === 'green')
+```
+
+Switches have a fall-through feature where they continue if there is no return or break keyword, so multiple OR cases can share a single execution block. In this example, both red and green will return an apple.
+```js
+switch(true) {
+  case color === 'red':
+  case color === 'green':
+    const apple = getApple()
+
+    return apple
+
+  case color === 'yellow':
+    const banana = getBanana()
+    banana.shape = 'banana-shape?'
+
+    return banana
+}
+```
+    
