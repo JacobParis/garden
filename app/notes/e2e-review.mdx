@@ -1,0 +1,106 @@
+I've included links to the relevant commits for each section. I'll work at getting these formalized into general notes on Notion so they're useful to everyone
+
+## Restore en.ts
+
+[link to commit](https://github.com/oscartechnologies/lead-generation-funnels/pull/586/commits/9ac03a1732bdfa9dd732f268f84d901be82ead5e)
+
+We changed the `en.ts` file to `en.js` to debug why it wouldn't load in cypress. Doing that got us a little bit further along, enough to start getting errors from @testing-library saying it couldn't be found. That led to the realization none of the modules were installed (including typescript), so installing them was the overall solution to that bug
+
+Once the modules (one of them being Typescript) were installed, the `en.ts` file could load normally so we can bring that back having discovered why it wasn't working.
+
+- Rename en.js to en.ts
+- add `as const` to end
+- update nuxt.config.js to look for en.ts instead of en.js
+
+## Handle prefilled property value
+
+[link to commit](https://github.com/oscartechnologies/lead-generation-funnels/pull/586/commits/887eae939f3075c0b88caa15c8f9fde5f8e779cf)
+
+When we add a property, we check the property service for a valuation. If it has one, it's autofilled into the property value field. Currently the first test when we enter the property page is to hit continue and hope we get errors (because the required field was empty) but there won't be any errors if that field is already filled out with the property value
+
+To ensure it's empty before testing the continue button, I've added a clear action
+```diff
+  cy
+  .findByRole('textbox', { name: en.pages.homeEquityLoan.property.currentValue })
++ .clear()
+```
+
+## Handle multiple errors on property page
+
+[link to commit](https://github.com/oscartechnologies/lead-generation-funnels/pull/586/commits/1ebbe67a31d987e31196d328df225ca89f786011)
+[link to second commit because I forgot it include it in the first one](https://github.com/oscartechnologies/lead-generation-funnels/pull/586/commits/34378bc4aee17f8119ea1c9849411f8a48b5d0bb)
+
+The `status` role is being used to represent the form input errors. The refi property page only has one error, so it's easy enough to just check that the only status role on the page has the right text. This page for the HEL funnel has more than one, and cypress doesn't have a very elegant way of handling that
+
+I've replaced it with a lazy check that there is at least one error on the page
+
+This solution kinda sucks. I have my eye on [aria-errormessage](https://www.digitala11y.com/aria-errormessageproperties/) which we should be able to use to query error messages the same way we do labels: directly from the input. I'll have to hack cypress a bit to get that working though, and haven't had time to dive in and see how much work it'd be
+
+```js
+// Made up code, but this would be my dream way to handle errors if I can figure out how to make it work
+cy.getByRole('textbox', 'Username').should('have.error', 'Username cannot contain spaces')
+```
+
+## Add conditions for qualifying products
+
+[link to commit](https://github.com/oscartechnologies/lead-generation-funnels/pull/586/commits/1c08947acea29ecbe998ccf091d670f63d52ca12)
+
+In the refi funnel I had some code that looked like this
+
+```js
+cy.isOnPage('home-equity-loan', 'borrow').then(() => {	
+  cy.log('ℹ️ Borrower has available equity')	
+  cy.log('✅ Borrow page')	
+
+  // Do things on borrow page
+}, () => {	
+  cy.log('ℹ️ Borrower had no available equity')	
+  cy.log('❎ Skipped borrow page')	
+})
+```
+
+That didn't work **at all**. There's no second argument to handle if it fails, and I have no idea why I thought that would work. In Cypress, every assertion we write must eventually pass or the test will fail, so if we want branching like this we have to add that to the `test` object at the top of the file too.
+
+It looks like this now
+```js
+if (test.shouldHaveEquity) {
+  cy.isOnPage('home-equity-loan', 'borrow')
+  cy.log('ℹ️ Borrower has available equity')	
+  cy.log('✅ Borrow page')	
+
+  // Do things on borrow page
+} else {
+  cy.log('ℹ️ Borrower had no available equity')	
+  cy.log('❎ Skipped borrow page')	
+}
+```
+
+I've added `test.shouldHaveEquity` for when the user gets to the borrow page if we expect them to have room to take anything out, and `test.shouldQualifyForProduct` for whether they're going to make it to the property page or they're too poor and get funneled straight to incomplete.
+
+This also makes it a bit clearer about how good our test coverage is: right now all our tests expect they'll have equity and should qualify. We can add some new ones where one or both of those are false, and then set their income or mortgage to really bad numbers that we know should fail. That will take a bit of guess-and-check.
+
+## Add list item role to product
+
+[link to commit](https://github.com/oscartechnologies/lead-generation-funnels/pull/586/commits/d8352fe2f76204885dd605e62da50bd190e5bfdd)
+
+The products page in the refi funnel uses ProductCard components which look exactly made for this. The HEL funnel has its own, which is probably an inconsistency we should fix.
+
+Either way, I kept the same pattern as refi for testing this, which gives a `list` role (the one used by <ul>) to the element that wraps the product, and then gave the product the `listitem` role (the one used by <li>)`. That keeps the test flexible if we want to return multiple products (like refi does) but it seems like HEL only returns one product so we could simplify this part a lot by making our test only ever expect or handle a single product.
+
+The only change here was to give `role="list" aria-label="Available rates"` to the container around the products, which lets us use `getByRole('list', 'Available rates')` to target that one specifically, and then within it we can use `getAllByRole('listitem')` because I added that role to the product.
+
+Other change is the test needed to look for the text 'Get approved' (used by HEL funnel's custom product) instead of 'Continue' (used by the generic ProductCard component that we should probably use here)
+
+## isOnPage command
+
+The part of the `isOnPage` command that checked the headers was commented out. After enabling it I could see why – the route is named `home-equity-loan` but the field in the locale file is named `homeEquityLoan`
+
+I found a script on stack overflow to convert kebab-case to camelCase and added that to the command, so now it will work for HEL as well
+```diff
+  // home-equity-loan -> homeEquityLoan
++ const camelCaseFunnel = funnel.replace(/-./g, x => x.toUpperCase()[1])
+
+- const title = new RegExp(en.pages[funnel][page].title.replace(/\{.*\}/g, '.*'))
++ const title = new RegExp(en.pages[camelCaseFunnel][page].title.replace(/\{.*\}/g, '.*'))
+```
+
