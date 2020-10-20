@@ -86,7 +86,7 @@ This also makes it a bit clearer about how good our test coverage is: right now 
 
 The products page in the refi funnel uses ProductCard components which look exactly made for this. The HEL funnel has its own, which is probably an inconsistency we should fix.
 
-Either way, I kept the same pattern as refi for testing this, which gives a `list` role (the one used by <ul>) to the element that wraps the product, and then gave the product the `listitem` role (the one used by <li>)`. That keeps the test flexible if we want to return multiple products (like refi does) but it seems like HEL only returns one product so we could simplify this part a lot by making our test only ever expect or handle a single product.
+Either way, I kept the same pattern as refi for testing this, which gives a `list` role (the one used by ul) to the element that wraps the product, and then gave the product the `listitem` role (the one used by li)`. That keeps the test flexible if we want to return multiple products (like refi does) but it seems like HEL only returns one product so we could simplify this part a lot by making our test only ever expect or handle a single product.
 
 The only change here was to give `role="list" aria-label="Available rates"` to the container around the products, which lets us use `getByRole('list', 'Available rates')` to target that one specifically, and then within it we can use `getAllByRole('listitem')` because I added that role to the product.
 
