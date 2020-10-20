@@ -105,3 +105,8 @@ I found a script on stack overflow to convert kebab-case to camelCase and added 
 + const title = new RegExp(en.pages[camelCaseFunnel][page].title.replace(/\{.*\}/g, '.*'))
 ```
 
+## Revert en imports for Circle
+
+When CircleCI runs the tests, it's only running the /e2e/ folder. Since the /locales/ folder is outside of that, we have to inject it in so that the tests are able to read it. Right now we're injecting it into /e2e/cypress/support, so the imports expect to find it there. For that reason, and for this moment, we need to change the import when we're working locally but make sure we don't commit that change so it still works in Circle.
+
+There should be a way to inject it beside /e2e/ so that Circle sees it in the same place as we have it in our real code, and then no code changes need to happen. That's the right solution, but I haven't 100% worked out how to do it yet.
