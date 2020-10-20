@@ -110,3 +110,11 @@ I found a script on stack overflow to convert kebab-case to camelCase and added 
 When CircleCI runs the tests, it's only running the /e2e/ folder. Since the /locales/ folder is outside of that, we have to inject it in so that the tests are able to read it. Right now we're injecting it into /e2e/cypress/support, so the imports expect to find it there. For that reason, and for this moment, we need to change the import when we're working locally but make sure we don't commit that change so it still works in Circle.
 
 There should be a way to inject it beside /e2e/ so that Circle sees it in the same place as we have it in our real code, and then no code changes need to happen. That's the right solution, but I haven't 100% worked out how to do it yet.
+
+## Remove dead fields
+
+[link to commit](https://github.com/oscartechnologies/lead-generation-funnels/pull/586/commits/1279ce7c44df3ddfffa2341c158405e9184683bd)
+
+Since the test objects were copy-pasted over from refi, there were some fields set there that didn't do anything in this test. Only the first applicant is ever taken into account, and the expenses were never used. I've removed those fields, which revealed that two of our tests were basically identical, so I was able to delete one of those as well
+
+This gives us a more accurate picture of what we've tested so far. If the HEL funnel allows a second applicant, we can add testing that to the flow like it is on Refi, and if there's ever a spot for expenses that can be added back in to improve test coverage.
