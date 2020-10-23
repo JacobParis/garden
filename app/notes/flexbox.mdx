@@ -1,0 +1,136 @@
+export const title = 'flexbox'
+
+Is there a (hopefully brief) explanation for why it's justify-content and align-items ?
+perplexingly there also seems to be justify-items and align-content, but I haven't ever used them
+(not looking for a mnemonic device, but really "why") (edited) 
+
+
+
+
+29 replies
+
+Chris Naismith:react:  3 hours ago
+Okay I did some playing around with this for you @chang and I read documentation
+:pray:
+1
+
+
+Chris Naismith:react:  3 hours ago
+Content refers to the spacing around a row(s) and column(s) of flex items.
+Items refers to the specific child of a flex container.
+:thought_balloon:
+1
+
+
+Chris Naismith:react:  3 hours ago
+What I found out is, you can not vertically align flex items with align-content: center when you only have 1 row. This is because it's technically already centered. Where as align-items: center will allow you to align vertically within the existing row. (edited) 
+
+Chris Naismith:react:  3 hours ago
+Both justify-items and align-items will set justify-self and align-self on all flex-children of the container.
+
+Chris Naismith:react:  3 hours ago
+My above statement with 1 row is incorrect. I'm still a little confused. But that's okay. I think it's just applying styles to the children vs the container.
+
+chang  3 hours ago
+thanks so much for doing the research :appreciation:
+I'm still not really to "getting" it, but I do feel closer to it :slightly_smiling_face:
+
+Chris Naismith:react:  3 hours ago
+if you figure out a better way to explain it. I'd love to hear it!
+
+chang  3 hours ago
+I think I need some kind of visual diagram of what is and isn't items, and what is happening when item and content are aligned and justified
+
+kieran:verified:  1 hour ago
+I think they use the term “content” to include both items (boxes, e.g. divs) and text (wrapping content, e.g. spans)
+
+kieran:verified:  1 hour ago
+those are essentially the two primitives in web layout, the unstyled elements represented as div and span
+
+kieran:verified:  1 hour ago
+most other simple html elements could be expressed as a styled version of those two
+
+kieran:verified:  1 hour ago
+like an h1 is just a span with some implicit styles (font-size, margin, weight) (edited) 
+
+kieran:verified:  1 hour ago
+it’s almost certainly more complicated than that now, but that’s the basis as I understand it
+
+chang  1 hour ago
+Does that mean if there are no "text" children, "items" can then be exclusively used? (Justify items) (edited) 
+
+kieran:verified:  1 hour ago
+so justify-content will apply to both block and inline elements along the “main axis”
+
+kieran:verified:  1 hour ago
+whereas align-items  applies to the “cross axis”
+
+kieran:verified:  1 hour ago
+(the other axis)
+
+kieran:verified:  1 hour ago
+“justify” as a word comes from print text layout (edited) 
+
+kieran:verified:  1 hour ago
+not sure why they chose that particular word
+
+kieran:verified:  1 hour ago
+there are some nice example images here: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
+CSS-TricksCSS-Tricks
+A Complete Guide to Flexbox | CSS-Tricks
+Our comprehensive guide to CSS flexbox layout. This complete guide explains everything about flexbox, focusing on all the different possible properties for the parent element (the flex container) and the child elements (the flex items). It also includes history, demos, patterns, and a browser support chart.
+:pray:
+1
+
+
+kieran:verified:  1 hour ago
+I use that site to remember what’s what every time I do flexbox
+
+chang  1 hour ago
+still trying to work this out mentally
+say I have some boxes with
+<div class="flex w-full h-full bg-red-900">
+  <div class="w-10 h-10 bg-red-400"></div>
+  <div class="w-10 h-10 bg-red-400"></div>
+  <div class="w-10 h-10 bg-red-400"></div>
+  <div class="w-10 h-10 bg-red-400"></div>
+</div>
+since it's all boxes, I wonder why neither justify-content: center; align-content: center nor justify-items: center; align-items: center; works to completely center on x and y? (edited) 
+
+chang  1 hour ago
+oh is justify-items only relevant to css grid? (edited) 
+
+Oksana  45 minutes ago
+Even though it doesn’t really answer the main question, “justify-items” seems to be used in grid not in flexbox: “In flexbox layouts, this [justify-items] property is ignored” https://developer.mozilla.org/en-US/docs/Web/CSS/justify-items
+“We don’t have a justify-items or justify-self property available to us on the main axis as our items are treated as a group on that axis.” https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Aligning_Items_in_a_Flex_Container
+MDN Web DocsMDN Web Docs
+justify-items
+The CSS justify-items property defines the default justify-self for all items of the box, giving them all a default way of justifying each box along the appropriate axis.
+MDN Web DocsMDN Web Docs
+Aligning Items in a Flex Container
+One of the reasons that flexbox quickly caught the interest of web developers is that it brought proper alignment capabilities to the web for the first time. It enabled proper vertical alignment, so we can at last easily center a box. In this guide, we will take a thorough look at how the alignment and justification properties work in Flexbox.
+:pray:
+1
+
+
+kieran:verified:  44 minutes ago
+I think you want:
+‘’’
+justify-content: center;
+align-items: center;
+‘’’
+
+kieran:verified:  43 minutes ago
+Each applies to a different axis
+
+kieran:verified:  42 minutes ago
+The names are definitely confusing
+
+kieran:verified:  40 minutes ago
+Vertical alignment definitely has history in CSS, whereas jusitification goes all the way back to the printing press
+
+chang  34 minutes ago
+I think I finally get it, something like [axis]-[block|text]-[position]
+kinda embarrassed to say I didn't realize this was a css grid thing; I am way behind the curve on that train
+thanks all for the help! :appreciation:
+(also this playground helped me and hope it might also be helpful for others similarly trying to figure it out) (edited) 
