@@ -12,7 +12,7 @@ const CardSwipe = () => {
     useEffect(() => {
         //request only if card is not valid and retrials are less than 3
         
-       if(cardData.isNotValid && retrial < 3){
+       if(cardData.isNotValid && retrials < 3){
             requestNewCard() // this enables the cardReader asking cutomer to swipe/insert
             setRetrials(c => c + 1 )
         } else {
@@ -20,9 +20,9 @@ const CardSwipe = () => {
             history.push("/authPage")
         }
 
-    }, [cardData]) // So can i exclude 'retrial' here ??
+    }, [cardData]) // So can i exclude 'retrials' here ??
 
-    if (retrial >= 3) return (<h1>Some Error Msg</h1>)
+    if (retrials >= 3) return (<h1>Some Error Msg</h1>)
 
     return (
         <h1> Please swipe/insert your card</h1>
