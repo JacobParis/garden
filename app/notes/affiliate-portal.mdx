@@ -1,0 +1,74 @@
+export const title = 'Affiliate portal review'
+
+## Reset password flow does not automatically log in
+
+## ~Deals do not load~
+
+Server error 500 on `http://localhost:3300/api/places/sign`
+```json
+{
+  "error": {
+    "message": "Cannot read property 'replace' of undefined",
+    "name": "TypeError",
+    "frames": [
+      {
+        "file": "server/api/places.js",
+        "method": null,
+        "line": 12,
+        "column": 43,
+        "context": {
+          "start": 7,
+          "pre": "const router = express.Router()\n\nrouter.post('/sign', (req, res) => {\n  const url = new URL(req.body.url)\n  const key = Buffer.from(",
+          "line": "    process.env.GOOGLE_API_SIGNING_SECRET.replace(/-/g, '+').replace(/_/g, '/'),",
+          "post": "    'base64',\n  )\n\n  const out = crypto\n    .createHmac('sha1', key)"
+        },
+        "lang": "js",
+        "open": "/__open-in-editor?file=/src/server/api/places.js:12:43"
+      },
+```
+
+It appears I was missing the GOOGLE_API_SIGNING_SECRET in my dotenv
+
+Pulling the latest environment variables from LastPass solved it
+
+## Body parser is deprecated
+
+## The 'All' tab sets param ?filter=ALL instead of no filter
+
+## Changing tabs forces an uncached redownload of all new deals
+
+## Skeleton disappears before images have loaded
+
+## ~Some deals have malformed addresses~
+
+There was one deal in the system with a regional postal code (M1W) that broke the formatting. Normally we're using postal codes as triggers to show that the address object is fully qualified, but that didn't work here. 
+
+The regional code is still a sign that the property couldn't be found, so we should be falling back to the user supplied address description. I've modified the check to be if postal code exists and is longer than 3 characters, and now it correctly falls back to the description.
+
+The address formatting filter from design portal and lead admin portal was brought in, so we can format straight from the address object instead of having to guess at that manually.
+
+## Deal Modal was dead code
+
+## ~Deal component had deals-is attribute~
+
+Most likely an orphan of some temporary code that was deleted: this was never defined on the deal card and never used on the deal table, but there anyway. It has been deleted.
+
+## Changing the skip query parameter does not change which deals are rendered
+
+There are multiple sources of truth for pagination code
+
+The skip, limit, and filter queries are all being mapped into state, and then the state version is used with imperative calls to sync them when filtering or when the route changes. Removing this duplication will likely go a long way toward solving the issue.
+
+## ~Deal card only shows last created, not latest activity~
+
+The deal schema has a last modified property, so we can pull that timestamp in and use it in much the same way we're doing it now with latest activity. The original reason to switch to created instead of latest activity was because we had no mechanism to update deals from legacy. Today, in a lead admin portal world, that is no longer true.
+
+I also wrapped the elements in dd and dt tags, since this is a key value relationship.
+
+## ~Property image has square corners that stick out past the card~
+
+* Added .overflow-hidden to the deal card
+
+## Access token has expired error
+
+If the user idles on the page long enough, it will still get the access token expired error. Any navigation will restore the token, so logging in is no longer necessary. The lazy fix would be to poll regularly to refresh the token while idling.
