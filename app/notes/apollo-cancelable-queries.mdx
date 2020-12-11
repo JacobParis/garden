@@ -1,0 +1,181 @@
+export const title = 'Apollo Cancelable Queries'
+
+We have a page where a user can drag a slider across different possible purchase prices for homes. At each tick on the slider, a query is sent to get the mortgage rates for a house at that value.
+
+## Raw input callback
+
+The lazy solution is to fire a network request on every input event for the slider. If the slider starts at the top end of affordability ($1,000,000) and I drag it down to the bottom end ($400,000), it would send hundreds of network requests. On a slow 3G mobile network, requests are measured in seconds, so the numbers can continue to update for several seconds after the user stops moving the slider as the previously dispatched requests return.
+
+## Debounce input callback
+
+Instead of fetching the results on every input, put a small timer in. Once the user has stopped dragging the slider for at least 500ms, fetch the data.
+
+This is probably the most intuitive option, but the actual UX is decidedly janky. If I stop at position A for 500ms, then move to position B, I'll see the rates for position A arrive shortly after stopping at B with no indication that they're out of date. Soon after, the rate updates with the information for position B without the user having done anything. This still suffers from the previous issue where numbers update after the user stops dragging, except limited only to when they pause briefly for longer than the debounce time but less than the request time.
+
+Furthermore, even on an infinitely fast network connection, the fetch will take at least 500ms to even start, so the application is artificially slowed.
+
+> Debouncing can be an effective optimization tool for code that already works without it, but it doesn't fix any bugs.
+
+## Cancel network requests
+
+This is the ideal solution
+
+We could scrap the debounce and go back to the raw input callback, if only each new fetch would cancel the previous pending fetch before dispatching. That would result in a world where still hundreds of requests were started while dragging, but only one active request at a time. Since that solves all the other problems we had, we could add a small debounce to limit the number of requests, but only as an optimization step (not necessary to make the functionality work).
+
+The first step is to build some apollo middleware that allows cancelling requests. Queries can be made just like normal, with the addition of a context value that uniquely identifies that type of request
+
+```js
+const response = await apollo.query({
+  query: gql`
+  query Products($input: CalculationInput!) {
+    products(input: $input) {
+      id
+      name
+      type
+      rateType
+      effectiveRate
+      maximumLoanDollars
+    }
+  }
+`,
+  variables: {
+    input
+  },
+  context: {
+    cancelId: 'getLowestRateProduct'
+  }
+})
+```
+
+Then we build some apollo middleware that will process requests with a cancelId
+
+```js
+const connections = {}
+
+const cancelRequestLink = new ApolloLink((operation, forward) => {
+    const context = operation.getContext()
+    
+    if (!context.cancelId) return forward(operation)
+
+    if (connections[context.cancelId]) {
+      connections[context.cancelId].abort()
+
+      delete connections[context.cancelId]
+    }
+
+    return new Observable((observer) => {
+      const controller = new AbortController()
+
+      operation.setContext({
+        ...context,
+        fetchOptions: {
+          signal: {
+            ...controller.signal,
+            onabort: () => cancelRequest()
+          },
+          ...context?.fetchOptions
+        }
+      })
+
+      connections[context.cancelId] = controller
+
+      const connectionHandle = forward(operation).subscribe({
+        next (...args) {
+          observer.next(...args)
+        },
+        error (...args) {
+          cancelRequest()
+          observer.error(...args)
+        },
+        complete (...args) {
+          cancelRequest()
+          observer.complete(...args)
+        }
+      })
+
+      return connectionHandle
+
+      function cancelRequest () {
+        if (connectionHandle) {
+          connectionHandle.unsubscribe()
+        }
+
+        delete connections[context.cancelId]
+      }
+    })
+  })
+})
+
+return {
+  httpEndpoint: path,
+  link: from([errorLink, cancelRequestLink]),
+  queryDeduplication: false
+}
+```
+
+And the result? It **almost** works. 
+
+Apollo successfully aborts any pending request when a new one with the same cancelId is dispatched. Unfortunately, once apollo aborts a request, it refuses to make that same request with the same parameters ever again. It doesn't even make it as far as this middleware to do anything about it. This bug [was first reported](https://github.com/apollographql/apollo-client/issues/4150) two years ago and has not been resolved.
+
+So that's a dealbreaker.
+
+## Use apollo subscribers
+
+If there's one benefit that diving into the request cancellation provided (provode?) it's that I discovered that Apollo's built in subscribe function is a pareto acceptable solution.
+
+This follows the same general pattern as the middleware, but done inline and with no abort controller involved.
+
+The pending requests are not cancelled, but Apollo just ignores their results so there aren't any of the UI bugs we ran into earlier.
+
+```js
+  getLowestRateProduct ({ state, commit, getters }) {
+    const apollo = this.app.apolloProvider.defaultClient
+
+    const input = { … }
+
+    // If there's already a request in progress, cancel it and do this one
+    cancelLastRequest()
+
+    subscriptions.getLowestRateProduct = apollo.watchQuery({
+      query: gql`
+        query Products($input: CalculationInput!) {
+          products(input: $input) {
+            id
+            name
+            type
+            rateType
+            effectiveRate
+            maximumLoanDollars
+            validity
+          }
+        }
+      `,
+      variables: {
+        input
+      },
+      fetchPolicy: 'cache-and-network'
+    }).subscribe({
+      next ({ partial, data }) {
+        if (partial) return
+
+        if (!data) return
+
+        const validProducts = data.products.filter(p => p.validity)
+        
+        // do things with data
+      },
+      error () {
+        cancelLastRequest()
+      },
+      complete () {
+        cancelLastRequest()
+      }
+    })
+
+    function cancelLastRequest () {
+      if (subscriptions.getLowestRateProduct) {
+        subscriptions.getLowestRateProduct.unsubscribe()
+      }
+    }
+  },
+```
