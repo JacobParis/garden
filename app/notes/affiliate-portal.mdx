@@ -39,6 +39,12 @@ Pulling the latest environment variables from LastPass solved it
 
 ## The 'All' tab sets param ?filter=ALL instead of no filter
 
+Currently the tabs are being rendered out in a loop, with one of them being ALLIncluding a filter on the ALL button means there are two scenarios with which we need to render every deal: ?filter=ALL and with a URL that has no filter param.
+
+Erring on the side of having one way to do each thing, the path for the ALL button should not include a filter.Using a ternary on the route is acceptable, but I would rather see at least the ALL button removed from the loop, since it behaves differently from the others.
+
+If the other tab buttons remain in a v-for loop, make sure that they aren’t still being keyed by the loop index.
+
 ## Changing tabs forces an uncached redownload of all new deals
 
 ## Skeleton disappears before images have loaded
