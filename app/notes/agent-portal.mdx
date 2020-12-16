@@ -1,0 +1,59 @@
+export const title = 'Agent portal review'
+
+## ~Authentication was broken~
+
+There were some updates needed to fix the Cognito setup and lack of SSR
+
+## Editing items should autosave with revert button
+*From matt* 
+> My preference would be autosave, with the card header and done button as a sticky element that cannot be scrolled offscreen when in edit mode.
+
+I would prefer to handle this myself since I have the most context
+
+## Opening some deals goes to broken "new deal" page
+
+Most likely some deal mapping things with incomplete data.
+
+## No deal pagination
+
+We can steal this from the lead admin portal since it's almost identically built
+
+## Unqualified leads with negative loan balances are mixed in the same list
+
+## Credit score modal uses hardcoded name Andrew Smith
+
+## Valuation sources show MPAC
+
+## Names on dashboard end in X?
+
+## Deal page property details age shows '-- years' when no age
+
+## Lender logo name prop doesn't handle null lenders
+
+## Intake sidebar prints out array of names instead of joining them
+
+> Meet with [ "Jacob Paris" ]
+
+# Things to delete
+
+## Top bar
+- Search input
+
+## Nav sidebar (left)
+- Everything except deals and dashboard
+
+## Dashboard
+- Inbox tab
+- Reports tab
+- High Priority summary
+- Deals & Opportunities summary
+- Sidebar contents
+
+## Deal page
+- History tab
+- Settings tab
+
+# Things to hide behind feature flags
+
+## Dashboard
+- New deal button (only allow loading deals)
