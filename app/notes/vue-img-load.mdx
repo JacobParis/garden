@@ -1,0 +1,22 @@
+export const title = "Waiting until images load in Vue"
+
+Vue gives us the handy `@load` event on regular `img` tags that triggers when the image has completed loading. This is great if you want to show a loading spinner or other animation rather than a progressively loading image.
+
+```xml
+<img v-show="showImage" src="https://placekitten.com/340/400" @load="onImageLoaded" />
+<spinner v-if="!showImage" />
+
+```
+```js
+export default {
+  data() {
+    return {
+      showImage: false
+    }
+  },
+
+  methods: {
+    onImageLoaded() {
+      showImage = true
+```
+      
