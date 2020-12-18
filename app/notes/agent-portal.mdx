@@ -8,7 +8,17 @@ There were some updates needed to fix the Cognito setup and lack of SSR
 *From matt* 
 > My preference would be autosave, with the card header and done button as a sticky element that cannot be scrolled offscreen when in edit mode.
 
-I would prefer to handle this myself since I have the most context
+There are a number of different patterns for editing and saving cards currently in place. This is largely because of matt changing  opinions during the design process, as new information came in about how people were using the software, and about the common mistakes they ended up making. 
+
+The most common method in place i sthe save/cancel process. Each card has an edit mode and a static mode. By default, they're in the static mode which makes it easy to view the information. Upon pressing edit, you go into edit. This will not change. 
+
+Once in edit mode, changes are temporary. By hitting cancel, they're discarded and  by pressing Savce they are committed to the database for permanence.
+
+On particularly long cards, the save button will be off-screen either on the top or bottom (depending where we decide to put the button) or even on both if the card is exceptionally long. This means the user editing information will not see the save button, and has no reason to suspect their changes aren't being saved.
+
+Saving automatically has its own problems too: a user who clears or changes a field by mistake might forget what the original content was. There is a need for a solution that solves this too.
+
+The current plan is to replace the save/cancel buttons with done/discard buttons, and have each input autosave on blur.
 
 ## Opening some deals goes to broken "new deal" page
 
