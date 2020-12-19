@@ -20,6 +20,53 @@ Saving automatically has its own problems too: a user who clears or changes a fi
 
 The current plan is to replace the save/cancel buttons with done/discard buttons, and have each input autosave on blur.
 
+### Attempt 1) Map into existing store structure
+There's already a save card function, so I'll clone it and call it saveField since this one is meant to be fired on every field. If it ends up being the same, I can merge it back in, but this way my changes don't break anything else.
+
+We can use a state enum called cardState which is either IDLE, SAVING, or SAVED (for now)
+
+```js
+async function saveField() {
+  if (this.cardState === 'IDLE' || this.cardState === 'SAVED') {
+    this.cardState = 'SAVING'
+    await this.$store.dispatch(`${store}/upsertSection`, {
+      id: this.id,
+      section: this.section,
+    })
+
+    this.cardState = 'SAVED'
+  }
+},
+```
+
+This implementation is naïve and will ignore overlapping saves. That means if one field hasn't finished autosaving by the time another one tries, it will skip that one. It's a small bug, but one to be sorted out later.
+
+Adding `@blur="saveField"` to the input and it works great – successfully saved on every blur after every change.
+
+Touching an input and then leaving it immediately also forces a save, so it's necessary to check whether the input has changed since the last time it was saved. For that I'll add a new state variable called `savedSection` that represents the section's values as they existed the last time they were saved. We also need to start passing in the name of the field so we know which one to check
+
+```diff
+async function saveField(fieldName) {
++ // If no fieldName is passed, skip this check and attempt to save
++ if (this.savedSection && fieldName) {
++   // We don't need to save the field if it hasn't changed since last time
++   const isUnchanged =
++     this.savedSection[fieldName] === this.section[fieldName]
++   if (isUnchanged) return
++ }
+  
+  if (this.cardState === 'IDLE' || this.cardState === 'SAVED') {
+    this.cardState = 'SAVING'
+    await this.$store.dispatch(`${store}/upsertSection`, {
+      id: this.id,
+      section: this.section,
+    })
+
+    this.cardState = 'SAVED'
+    this.savedSection = { ...this.section }
+  }
+},
+```
 ## Opening some deals goes to broken "new deal" page
 
 Most likely some deal mapping things with incomplete data.
