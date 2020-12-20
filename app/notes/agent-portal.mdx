@@ -67,6 +67,35 @@ async function saveField(fieldName) {
   }
 },
 ```
+
+As long as the savedSection is updated when edit or save is clicked, and then nullified when cancel is clicked, this works great for all top level fields.
+
+For nested data, we'd need to pass a sort of path to the value either as a string (vuex map fields style) or a getter function (section => section.whatever.nested)
+### Method 2: Apollo
+
+To move data from vuex to apollo we first look at the getters on the page
+```js
+...mapGetters('mortgages', ['mortgageTotal', 'refinancedMortgagesAmount']),
+```
+
+Copy them into the file you're working on and refactor to be named functions (not methods, which they were before)
+```js
+function mortgageTotal(state) {
+  return state.sections.reduce(
+    (sum, mortgage) => sum + Number(mortgage.balance),
+    0,
+  )
+}
+
+function refinancedMortgagesAmount(state) {
+  return state.sections
+    .filter((mortgage) => mortgage.refinanced)
+    .reduce((sum, mortgage) => sum + Number(mortgage.balance), 0)
+}
+```
+
+Replace `state.sections` with 
+
 ## Opening some deals goes to broken "new deal" page
 
 Most likely some deal mapping things with incomplete data.
