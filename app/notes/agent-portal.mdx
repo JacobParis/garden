@@ -189,7 +189,7 @@ const MORTGAGES_QUERY = gql`
 `
 ```
 
-And we can make vue-apollo call that natively. I've highlighted things that are specific to this query. The getters from the beginning of the process need to be mapped in the update() function. Apollo will give us two new state variables `this.`
+And we can make vue-apollo call that natively. I've highlighted things that are specific to this query. The getters from the beginning of the process need to be mapped in the update() function. Apollo will give us two new state variables `this.mortgages.mortgageTotal` and `this.mortgages.refinancedMortgagesAmount`, which are meant to replace the mapGetters function.
 
 ```diff
 apollo: {
@@ -214,6 +214,24 @@ apollo: {
     },
   }
 }
+```
+
+Only three things left to do. 
+- Replace every call to `this.mortgageTotal` with `this.mortgages.mortgageTotal` since it's namespaced now. Don't forget about any `{{ mortgageTotal }}` calls in the template, or about any of the other getters.
+- Delete the mapGetters line since nothing uses it anymore
+- Add a default value for mortgages to our data() object that Vue can use before our query completes.
+```diff
+data() {
+  return {
+    subjectProperties: {},
+    borrowers: {},
+    liabilities: {},
++   mortgages: {},
+  }
+},
+```
+
+
 
 ## Opening some deals goes to broken "new deal" page
 
