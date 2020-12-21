@@ -1,0 +1,158 @@
+To move data from vuex to apollo we first look at the getters on the page
+
+```js
+...mapGetters('mortgages', ['mortgageTotal', 'refinancedMortgagesAmount']),
+```
+
+Copy them into the file you're working on and refactor to be named functions (not methods, which they were before)
+```js
+function mortgageTotal(state) {
+  return state.sections.reduce(
+    (sum, mortgage) => sum + Number(mortgage.balance),
+    0,
+  )
+}
+
+function refinancedMortgagesAmount(state) {
+  return state.sections
+    .filter((mortgage) => mortgage.refinanced)
+    .reduce((sum, mortgage) => sum + Number(mortgage.balance), 0)
+}
+```
+
+Replace `state.sections` with the path into whichever object you're working with. For a liability getter, this is as easy as `deal.liabilities`. Mortgages are the weird case, because they're a subfield of both subject and owned properties, and we need to inject the property ID into each. For help, go to `store/index.js` and look at the function that calls `mortgageToStore`. That will show you what maps into `state.sections`.
+
+For mortgages that's this whole mess
+```js
+commit(
+  'mortgages/setSections',
+  Array()
+    .concat(deal.subjectProperties, deal.otherProperties)
+    .flatMap((property) =>
+      property.activeMortgages.map((mortgage) => ({
+        propertyId: property.id,
+        ...mortgage,
+      })),
+    )
+    .map(mortgageToStore),
+)
+```
+
+Here it makes sense to make a special function just for finding the mortgages that the others can use
+```js
+function mortgages(deal) {
+  return Array()
+    .concat(deal.subjectProperties, deal.otherProperties)
+    .flatMap((property) =>
+      property.activeMortgages.map((mortgage) => ({
+        propertyId: property.id,
+        ...mortgage,
+      })),
+    )
+}
+```
+
+And state.sections can be replaced by calls to that
+```js
+function mortgageTotal(deal) {
+  return mortgages(deal)
+    .reduce((sum, mortgage) => sum + Number(mortgage.balance), 0)
+}
+
+function refinancedMortgagesAmount(deal) {
+  return mortgages(deal)
+    .filter((mortgage) => mortgage.refinanced)
+    .reduce((sum, mortgage) => sum + Number(mortgage.balance), 0)
+}
+```
+
+Next, check mortgageToStore to see how each of the properties are supposed to be mapped. Here, that's `mortgage.balance` and `mortgage.refinanced`. In this case those are straight 1:1 maps, so the getter is good as-is, but we'll need be pasting those fields into our GraphQL query that we're writing now.
+
+A sample query for liabilities that just needs `liability.refinanced`, `liability.PayoffType`, and `liability.amount`
+```js
+const LIABILITIES_QUERY = gql`
+  query($id: ID!) {
+    deal(_id: $id) {
+      id: _id # All queries must return deal id so the cache works
+      liabilities {
+        id
+        refinanced
+        PayoffType
+        amount
+      }
+    }
+  }
+`
+```
+
+If you need something to reference, check the oversized deal query in `store/index.js`
+
+The mortgage query is going to look like this, since there are only two fields we need
+
+```js
+const MORTGAGES_QUERY = gql`
+  query($id: ID!) {
+    deal(_id: $id) {
+      id: _id # All queries must return deal id so the cache works
+      subjectProperties {
+        id
+        activeMortgages {
+          id
+          refinanced
+          balance
+        }
+      }
+      otherProperties {
+        id
+        activeMortgages {
+          id
+          refinanced
+          balance
+        }
+      }
+    }
+  }
+`
+```
+
+And we can make vue-apollo call that natively. I've highlighted things that are specific to this query. The getters from the beginning of the process need to be mapped in the update() function. Apollo will give us two new state variables `this.mortgages.mortgageTotal` and `this.mortgages.refinancedMortgagesAmount`, which are meant to replace the mapGetters function.
+
+```diff
+apollo: {
+  mortgages: {
+      // Don't try and look up a non-existent new deal
+      skip: ({ $route }) => $route.params.id === 'new',
+      
++     query: MORTGAGES_QUERY,
+      
+      update({ deal }) {
+        return {
++         mortgageTotal: mortgageTotal(deal),
++         refinancedMortgagesAmount: refinancedMortgagesAmount(deal),
+        }
+      },
+      
+      variables() {
+        return {
+          id: this.$route.params.id,
+        }
+      },
+    },
+  }
+}
+```
+
+Only three things left to do. 
+- Replace every call to `this.mortgageTotal` with `this.mortgages.mortgageTotal` since it's namespaced now. Don't forget about any `{{ mortgageTotal }}` calls in the template, or about any of the other getters.
+- Delete the mapGetters line since nothing uses it anymore
+- Add a default value for mortgages to our data() object that Vue can use before our query completes.
+```diff
+data() {
+  return {
+    subjectProperties: {},
+    borrowers: {},
+    liabilities: {},
++   mortgages: {},
+  }
+},
+```
