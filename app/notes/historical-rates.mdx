@@ -1,0 +1,23 @@
+export const title = 'Historical rates for mortgage lenders'
+
+In order to most accuratrely count the penalty costs for each borrower, we need a heuristic for determining how much tof a discount they got when the originally signed up for their mortgage. 
+
+If a big bank mortgage is advertising at 5% but gives you a rate of 2% on your mortgage, your penalty rate is calculated using a differential basedo n that 3% delta.
+
+Estimates are ok here, but the closer we are to the real numbers, the closer we are to accurately determining a customer's penalty costs (and therefore, the profitaboliity of refinancing their mortgage at any time. 
+
+The current heuristic that the break your mortgage dot com calculator is using assumes a standard 2% discount for all potential leads. This is **terrible** and not even remotely accurate.
+
+One lazy heuristic that might be good enough is to calculate an offset for each lender based on the bank of canada rate. For example, CIBC might be commonly 1% above BoC while scotiabank is 1% below. This is also wrong (all numbers are wrong) but this per-lender estimation is far better than the global 2% flat discount we are currently assuming.
+
+The ideal solution gives us access to a library of rates working back in time at least 5 years, for each of the main lenders, and for at least 3 and 5 year mortgages.
+
+We are currently archiving all rates we come across in our own product library, so five years from now this problem will solve itself But that's too long to wait to make money.
+
+Until then, the top priority is to track down any hints as to what those rates might have been online, from official sources (government sites), aggregators and curators (largely blogs), and competitor fintech services.
+
+## Ratehub
+
+The Ratehub api is terrible, but we might be able to make use of it. 
+
+RateHub has a mortgages.js that is not minified, so we can see their calculations here https://www.ratehub.ca/js/mortgages.js
