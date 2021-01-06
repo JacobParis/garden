@@ -1,19 +1,15 @@
 module.exports = {
-  purge: [
-    './app/**/*.mdx',
-    './app/**/*.js',
-    './app/**/*.html',
-  ],
+  purge: ['./app/**/*.mdx', './app/**/*.js', './app/**/*.html'],
   theme: {
     extend: {
       typography: {
         default: {
           css: {
             pre: {
-              whiteSpace: 'pre-wrap'
-            }
-          }
-        }
+              whiteSpace: 'pre-wrap',
+            },
+          },
+        },
       },
       margin: {
         '-full': '-100%',
@@ -23,7 +19,5 @@ module.exports = {
     },
   },
   variants: {},
-  plugins: [
-    require('@tailwindcss/typography'),
-  ],
+  plugins: [require('@tailwindcss/typography')],
 }

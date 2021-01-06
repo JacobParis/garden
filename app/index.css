@@ -9,3 +9,8 @@ html {
 body {
     margin: 0;
 }
+
+a {
+  text-decoration: underline;
+  text-decoration-color: rgba(currentColor, 0.5);
+}

@@ -3,9 +3,16 @@ import * as React from 'react'
 import Transition from './Transition'
 import FocusTrap from './FocusTrap'
 
-export default function Menu({ sidebarChildren = null, headerChildren = null, children, isStatic, isClosed, setClosed }) {
+export default function Menu({
+  sidebarChildren = null,
+  headerChildren = null,
+  children,
+  isStatic,
+  isClosed,
+  setClosed,
+}) {
   return (
-    <div className="flex bg-gray-100">
+    <div className="flex bg-white">
       <Transition
         show={isStatic || !isClosed}
         enter="transition-all duration-500"
@@ -21,7 +28,9 @@ export default function Menu({ sidebarChildren = null, headerChildren = null, ch
         >
           <FocusTrap isActive={!isStatic}>
             <div className="flex items-center justify-between h-10 px-4 bg-white border-b border-r">
-              <span className="py-2 text-blue"> Notes </span>
+              <a href="/" className="py-2 text-blue">
+                Jacob Paris
+              </a>
 
               {!isStatic && (
                 <button
@@ -43,9 +52,8 @@ export default function Menu({ sidebarChildren = null, headerChildren = null, ch
                 </button>
               )}
             </div>
-            
-            {sidebarChildren}
 
+            {sidebarChildren}
           </FocusTrap>
         </aside>
       </Transition>
@@ -64,7 +72,7 @@ export default function Menu({ sidebarChildren = null, headerChildren = null, ch
       </Transition>
 
       <main className="flex flex-col flex-grow min-h-screen">
-        <header className="flex items-center h-10 bg-white border-b">
+        <header className="flex items-center h-10">
           {!isStatic && (
             <button
               tabIndex="1"
@@ -87,7 +95,7 @@ export default function Menu({ sidebarChildren = null, headerChildren = null, ch
               </svg>
             </button>
           )}
-        {headerChildren}
+          {headerChildren}
         </header>
         {children}
       </main>
