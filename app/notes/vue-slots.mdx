@@ -1,0 +1,31 @@
+export const title = Vue slots
+
+Vue components can expose values to their children with `v-bind`
+
+```xml
+<template>
+  <ul>
+    <slot v-bind="{ items }" />
+  </ul>
+</template>
+```
+
+```xml
+<ListComponent v-slot="{ items }">
+  <li v-for="item in items"> { item } </li>
+</ListComponent>
+```
+
+It's important to note that you can only bind an object. No arrays, and no primitives.
+
+```xml
+<template>
+  <ul>
+    <slot v-bind="items" /> // BAD
+  </ul>
+</template>
+```
+
+This will sometimes work, since it will coërce to a an object with numerical keys `{ 0: item1, 1: item2 }`. But arguments like `items.length` will fail since objects do not have a length property
+
+If the only thing you need to pass is an array, wrap it in an object using the destructuring notation.
