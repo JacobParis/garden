@@ -1,0 +1,21 @@
+export const title = 'Storybook Vue'
+
+A Story is a function that returns a Vue Component
+
+Since Javascript functions are objects, a function can have properties. Storybook uses these properties for extra data, such as arguments and decorators, that it uses to create the story.
+
+```js
+function Component() {
+  return {
+    props: {},
+    data() {},
+    template: `<p> Hello world </p>`,
+    computed: {},
+    methods: {}
+  }
+}
+Component.args = {}
+Component.decorators = []
+```
+
+Note that these extra fields are part of the Component function itself, not part of the object it returns.
