@@ -1,0 +1,10 @@
+export const title = 'How I work'
+
+I start working on a feature in master without committing any code until the feature is done. Then I pull master again and handle any merge conflicts that may have appeared, again without committing.
+
+Then I make a new branch and go through my working files one by one, line by line, assembling a pull request by making single purpose easy to read commits. Any spare console logs or other debug code gets reverted here. Code that doesn't belong in this PR is ignored for now.
+
+I post it to GitHub and inform the reviewers that it's ready for them to look at. 
+
+If I have more code to post, I make a new branch based on my current one, and the PR it makes is set to merge into my previous branch rather than master. GitHub will only show the new commits so it's easy to review and to merge.
+
