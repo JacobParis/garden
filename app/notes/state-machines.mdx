@@ -1,0 +1,32 @@
+export const title = 'State machines'
+
+State is just data that changes over time
+
+## Global state
+
+State can change at any time for any reason
+
+## Reducer pattern
+
+State is only changed by events.
+
+## State machines
+
+State is only changed by specific events when in specific states that support those actions
+
+```js
+const simpleMachine = {
+  initial: 'active',
+  states: {
+    active: { on: { TOGGLE: 'inactive' } },
+    inactive: { on: { TOGGLE: 'active' } },
+  }
+}
+
+const reducer = (state, event) => {
+  return simpleMachine.states[state].on?[event.type] ?? state;
+}
+
+// in your component
+const [state, dispatch] = useReducer(reducer, machine.initial);
+```
