@@ -1,0 +1,71 @@
+export const title = 'Vue Apollo'
+
+```js
+return this.$apollo.mutate({
+        mutation: gql`
+          mutation addSubjectProperty(
+            $id: ObjectID!
+            $input: SubjectPropertyInput!
+          ) {
+            deal(_id: $id) {
+              addSubjectProperty(input: $input) {
+                id
+              }
+            }
+          }
+        `,
+        variables: {
+          id: this.$route.params.id,
+          input: {
+            address: {
+              description: this.property.address.description,
+            },
+            estimatedValue: this.property.propertyValue,
+            expenses,
+            occupancy: this.property.occupancy || undefined,
+          },
+        },
+        update: (store, { data: { deal } }) => {
+          const cacheData = store.readQuery({
+            query: SUBJECT_PROPERTIES_QUERY,
+            variables: {
+              id: this.$route.params.id,
+            },
+          })
+
+          const propertyId =
+            this.subjectProperties.length > 0
+              ? this.subjectProperties.find(Boolean).id
+              : null
+
+          store.writeQuery({
+            query: SUBJECT_PROPERTIES_QUERY,
+            data: {
+              deal: {
+                ...cacheData.deal,
+                subjectProperties: cacheData.deal.subjectProperties
+                  .filter((cachedProperty) => cachedProperty.id !== propertyId)
+                  .filter((cachedProperty) => cachedProperty.id)
+                  .concat([
+                    {
+                      id: deal.addSubjectProperty.id,
+                      address: {
+                        description: this.property.address.description,
+                        __typename: 'Address',
+                      },
+                      estimatedValue: this.property.estimatedValue,
+                      expenses: [],
+                      occupancy: 'OWNER_OCCUPIED',
+                      rentalIncome: {
+                        amount: 0,
+                        __typename: 'RentalIncome',
+                      },
+                      __typename: 'SubjectProperty',
+                    },
+                  ]),
+              },
+            },
+          })
+        },
+      })
+```
