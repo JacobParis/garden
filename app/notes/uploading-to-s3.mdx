@@ -83,3 +83,8 @@ Example trust relationship:
 
 The latter half of the StringEquals command is the identity pool id.
 
+## Missing pieces
+
+* We need to decide on the right group to assign our users to, and which role to give them that's meaningful.
+* The role needs to have the minimal set of permissions required to power this, which should be S3 upload access to specifically the buckets needed for documentation, and specifically the Key Management Service resources needed. Right now it has full access to both, which is correct.
+* The other portals need their authentication logic updated to send ID tokens instead of Access tokens. This is a breaking change and may result in downtime, so we should merge them all at the same time. If validating the token fails, include a message to the user to log out and back in, since they'll need to do that. 
