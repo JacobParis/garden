@@ -1,0 +1,85 @@
+export const title = 'Uploading to S3'
+
+There are a lot of things to do here
+
+## How it's supposed to work
+
+In an industry standard authentication scheme, there are three relevant tokens.
+
+The access token contains all the information a user needs to prove they have access to a resource. This is a Bearer token, and is usually sent as the Authentication ehader on an http request. It is short lived, as anyone who bears it can impersonate the logged in user. Usual lifetimes are around the span of an hour.
+
+The id token contains information about the user, including their name, email, and any relevant permissions they have. This can be sensitive information, so it is always a bad idea to send it to third party services. Consider this an application level source of information that should not be shared. 
+
+The refresh token contains the information needed to fetch new Id tokens and Access tokens. This is a slow process, which requires authentication with the server. For that reason, access tokens are used for general requests until they expire, and then the refresh token is used to get new access, id, and refresh tokens when they expire. The refresh token is long lived (for example a month) and this is why a user will be logged out automatically if they don't use the application for over a month. As long as the user uses the app at least once a month, the refresh token will fetch a new refresh token, and the user stays logged in perpetually.
+
+## How it actually works
+
+When you try to authenticate with the AWS SDK using a cognito identity pool, you have to pass in an ID token. This does not appear to be caused by any technical limitation: the API checks the idToken.aud field and matches it to the user pool client id. The access token also has an accessToken.client_id field with the same value, so it would seem trivial to use that as well. 
+
+Unfortunately, Cognito throws an error when you try this, even if you recode the token to have the clientId in the aud property.
+
+> Invalid login token. Token must be an id token
+
+There is no workaround for this, and I feel that this leaves Cognito fundamentally insecure. We are forced to trust AWS as a secure first-party resource. Information is still encrypted in transit while using HTTPS, but sending the ID token as a bearer token violates standard web security rules for dealing with third parties. 
+
+## Changing our ways
+
+I've changed the frontend code to pass the ID token as the bearer token, and updated the deal service (currently the only service that validates it) to validate the ID token instead of the access token. 
+
+Now the document service has access to the ID token, and can pass that into the credentials to authenticate with the identity pool and grant access.
+
+The idToken.iss property is the `issuer` and that's the URL we need to authenticate against. When we pass this into the logins object as the key, we just need to remove the https:// 
+
+```js
+const { CognitoIdentityClient } = require('@aws-sdk/client-cognito-identity')
+const { fromCognitoIdentityPool } = require('@aws-sdk/credential-provider-cognito-identity')
+
+const s3 = new S3Client({
+  credentials: fromCognitoIdentityPool({
+    client: new CognitoIdentityClient({
+      region: process.env.AWS_REGION
+    }),
+    identityPoolId: process.env.IDENTITY_POOL_ID,
+    logins: {
+      [idClaims.iss.slice(String('https://').length)]: IdToken
+    }
+  })
+})
+```
+
+## S3 Permissions
+
+Now that we're authenticating with the current logged in user, that user who is logged in needs the correct permissions. The user must have a `cognito group` attached (oscar-developers). This is distinct from an IAM role group.
+
+In the Cognito console, the group can be given a role. That role needs a policy for access to S3, to KMS (key management service), and it has to have a trust relationship set up to the identity pool you're trying to authenticate with. 
+
+Example trust relationship:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "cognito-identity.amazonaws.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "cognito-identity.amazonaws.com:aud": "ca-central-1:983db79e-b9fa-4e57-9eaf-7005f086097e"
+        }
+      }
+    }
+  ]
+}
+```
+
+The latter half of the StringEquals command is the identity pool id.
+
