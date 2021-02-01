@@ -88,3 +88,82 @@ The latter half of the StringEquals command is the identity pool id.
 * We need to decide on the right group to assign our users to, and which role to give them that's meaningful.
 * The role needs to have the minimal set of permissions required to power this, which should be S3 upload access to specifically the buckets needed for documentation, and specifically the Key Management Service resources needed. Right now it has full access to both, which is correct.
 * The other portals need their authentication logic updated to send ID tokens instead of Access tokens. This is a breaking change and may result in downtime, so we should merge them all at the same time. If validating the token fails, include a message to the user to log out and back in, since they'll need to do that. 
+
+## Creating the S3 Client with our Cognito token
+
+```js
+const { CognitoIdentityClient } = require('@aws-sdk/client-cognito-identity')
+const { fromCognitoIdentityPool } = require('@aws-sdk/credential-provider-cognito-identity')
+
+// Given authorization = 'Bearer ey15124141241414', split on the space and take the token
+const [, IdToken] = authorization.split(' ')
+
+const idClaims = jwtDecode(IdToken)
+
+const s3 = new S3Client({
+  credentials: fromCognitoIdentityPool({
+    client: new CognitoIdentityClient({
+      region: process.env.AWS_REGION
+    }),
+    identityPoolId: process.env.IDENTITY_POOL_ID,
+    logins: {
+      // The .iss field on the id token is the issuer, and that's the URL we need to match the token to
+      [idClaims.iss.slice(String('https://').length)]: IdToken
+    }
+  })
+})
+```
+
+## Uploading files
+
+For files larger than 5MB, we should be using multipart uploads.
+
+For single part uploads, use the PutObjectCommand
+
+```js
+const { PutObjectCommand } = require('@aws-sdk/client-s3')
+
+await s3.send(new PutObjectCommand({
+  Body: file.data,
+  Bucket,
+  Key,
+}))
+```
+
+## Getting signed URLs
+
+```js
+const { GetObjectCommand } = require('@aws-sdk/client-s3')
+
+const FIFTEEN_MINUTES = 15 * 60
+
+const url = await getSignedUrl(s3, new GetObjectCommand({
+  Bucket,
+  Key
+}), {
+  expiresIn: FIFTEEN_MINUTES
+})
+```
+
+## Aborting incomplete multipart uploads
+
+**note:** We are currently not using multipart uploads
+
+If a multipart upload is incomplete, by default S3 will retain its upload artefacts forever. We can configure S3 to delete those automatically
+
+```json
+{
+    "Rules": [
+        {
+            "ID": "Test Rule",
+            "Status": "Enabled",
+            "Filter": {
+                "Prefix": ""
+            },
+            "AbortIncompleteMultipartUpload": {
+                "DaysAfterInitiation": 7
+            }
+        }
+    ]
+}
+```
