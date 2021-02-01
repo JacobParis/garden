@@ -118,7 +118,7 @@ const s3 = new S3Client({
 
 For files larger than 5MB, we should be using multipart uploads.
 
-For single part uploads, use the PutObjectCommand
+For single part uploads, use the [PutObjectCommand](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/classes/putobjectcommand.html)
 
 ```js
 const { PutObjectCommand } = require('@aws-sdk/client-s3')
@@ -132,7 +132,10 @@ await s3.send(new PutObjectCommand({
 
 ## Getting signed URLs
 
+Use the [s3 request presigner](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_s3_request_presigner.html) module
+
 ```js
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner')
 const { GetObjectCommand } = require('@aws-sdk/client-s3')
 
 const FIFTEEN_MINUTES = 15 * 60
