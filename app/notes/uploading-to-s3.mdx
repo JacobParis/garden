@@ -6,11 +6,11 @@ There are a lot of things to do here
 
 In an industry standard authentication scheme, there are three relevant tokens.
 
-The access token contains all the information a user needs to prove they have access to a resource. This is a Bearer token, and is usually sent as the Authentication ehader on an http request. It is short lived, as anyone who bears it can impersonate the logged in user. Usual lifetimes are around the span of an hour.
+The *access token* contains all the information a user needs to prove they have access to a resource. This is a **Bearer** token, and is usually sent as the Authentication ehader on an http request. It is short lived, as anyone who **bears** it can impersonate the logged in user. Usual lifetimes are around the span of an hour.
 
-The id token contains information about the user, including their name, email, and any relevant permissions they have. This can be sensitive information, so it is always a bad idea to send it to third party services. Consider this an application level source of information that should not be shared. 
+The *id token* contains information about the user, including their name, email, and any relevant permissions they have. This can be sensitive information, so it is always a bad idea to send it to third party services. Consider this an application level source of information that should not be shared. 
 
-The refresh token contains the information needed to fetch new Id tokens and Access tokens. This is a slow process, which requires authentication with the server. For that reason, access tokens are used for general requests until they expire, and then the refresh token is used to get new access, id, and refresh tokens when they expire. The refresh token is long lived (for example a month) and this is why a user will be logged out automatically if they don't use the application for over a month. As long as the user uses the app at least once a month, the refresh token will fetch a new refresh token, and the user stays logged in perpetually.
+The *refresh token* contains the information needed to fetch new Id tokens and Access tokens. This is a slow process, which requires authentication with the server. For that reason, access tokens are used for general requests until they expire, and then the refresh token is used to get new access, id, and refresh tokens when they expire. The refresh token is long lived (for example a month) and this is why a user will be logged out automatically if they don't use the application for over a month. As long as the user uses the app at least once a month, the refresh token will fetch a new refresh token, and the user stays logged in perpetually.
 
 ## How it actually works
 
