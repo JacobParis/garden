@@ -1,0 +1,58 @@
+export const title = 'HTML Concepts'
+
+## Non-semantic elements
+
+There are only 5 non-semantic elements in HTML. They don't imply any particular meaning about their content, so their only purpose is the CSS styles that browsers apply by default.
+
+Non-semantic elements can be used for almost all situations, but `<div>` and `<span>` are by far the most common.
+
+`<div>` elements have `display: block;` by default
+`<span>` elements have `display: inline;` by default
+`<pre>` elements have `display:block; white-space: pre; font-family: monospace;` by default
+`<sub>` elements have `vertical-align: sub;` by default
+`<sup>` elements have `vertical-align: sup;` by default
+
+
+## Inline vs block
+
+Inline elements flow like text. You can wrap text in inline tags like span and it will not affect its flow at all. Two inline elements will appear side by side.
+
+Block elements stack (like blocks). By default, block elements fill the width of the screen. Two block elements will appear top and bottom.
+
+To use a table analogy, consider inline elements like columns and block elements like rows.
+
+## Semantic elements
+
+Semantic elements tell a browser what your content means.
+
+It is better to use non-semantic elements (like <div> and <span>) than the wrong semantic elements.
+
+## Lists
+
+There are several ways of writing lists in html.
+
+The `<ol>` tag is for ordered lists. They are usually numbered sequentially.
+The `<ul>` tag is for unordered lists. They're usually displayed with bullet points.
+
+The only element that's allowed to be inside these lists is `<li>`
+
+When a screen reader reads this element, it will say "List, 3 items"
+
+```html
+<ul>
+  <li> Apple </li>
+  <li> Banana </li>
+  <li> Cherry </li>
+</ul>
+```
+
+If you have a list with no elements, the screen reader will still read out "List, 0 items". If you don't want that, make sure you remove the `<ul>` tags on empty lists too.
+
+If you're displaying a list and hiding the bullet points so that it doesn't visually look like a list, consider whether a screen reader should still call it a list. If not, then you are probably better off not using a list element. 
+
+## Navigation lists
+
+The `<nav>` tag is for collections of links.
+
+Not every link needs to be in a `<nav>` tag, but if the user is expected to use the links as the main way to get to different parts of the page (or other pages), then you should probably use a `<nav>` tag
+
