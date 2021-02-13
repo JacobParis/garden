@@ -96,4 +96,94 @@ It's also ok for description lists to have `<div>` tags as children, but only fo
 </dl>
 ```
 
-A `<dt>`
+A `<dt>` term is defined by the nearest next `<dd>` definition. If multiple terms have the same definition, they can share a `<dd>` tag
+
+```html
+<dl>
+  <dt> Peach </dt>
+  <dt> Nectarine </dt>
+  <dd> A pale orange stonefruit </dd>
+
+  <dt> Banana </dt>
+  <dd> A large yellow berry </dd>
+</dl>
+```
+
+## Headings
+
+HTML has six heading tags, `<h1>` through `<h6>`, used to mark headings on a page.
+
+Do not use heading tags just to change font sizes.
+
+You can only have one `<h1>` tag per page.
+
+## Element with optional closing tags
+
+Several HTML elements do not require closing tags
+
+- `<html>`
+- `<head>
+- `<body>`
+- `<p>`
+- `<dt>`
+- `<dd>`
+- `<li>`
+- `<option>`
+- `<th>`
+- `<tbody>`
+- `<tr>`
+- `<td>`
+- `<tfoot>
+- `<colgroup>`
+
+That means that this is valid html
+
+```html
+<html>
+  <head> <title> My blog </title>
+  <body>
+    <h1> My blog </h1>
+
+    <p> Welcome to my blog
+    <p> Here are a list of my posts
+
+    <ul>
+      <li> My first post
+      <li> My second post
+      <li> My third post
+    </ul>
+```
+
+As a general rule I don't recommend writing html like this, as it can be hard to tell when an element is meant to end or meant to nest, especially when the formatting isn't as clean as possible.
+
+## Elements with no closing tags
+
+HTML has several **void** elements.
+
+- `<br>`
+- `<hr>`
+- `<img>`
+- `<input>`
+- `<link>`
+- `<meta>`
+- `<area>`
+- `<base>`
+- `<col>`
+- `<embed>`
+- `<param>`
+- `<source>`
+- `<track>`
+
+These cannot have any content, and cannot have separate closing tags. Closing a void element like this is invalid html.
+
+```html
+<img alt="" src=""></img>
+```
+
+Void elements can optionally be self-closing, so these are both correct.
+
+```html
+<img alt="" src="">
+
+<img alt="" src="" />
+```
