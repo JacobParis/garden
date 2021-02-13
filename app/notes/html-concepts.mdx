@@ -52,7 +52,48 @@ If you're displaying a list and hiding the bullet points so that it doesn't visu
 
 ## Navigation lists
 
-The `<nav>` tag is for collections of links.
+The `<nav>` tag is for lists of links.
 
 Not every link needs to be in a `<nav>` tag, but if the user is expected to use the links as the main way to get to different parts of the page (or other pages), then you should probably use a `<nav>` tag
 
+```html
+<nav>
+  <ul>
+    <li>
+      <a href="/home"> Home </a>
+    </li>
+    <li>
+      <a href="/blog"> Blog </a>
+    </li>
+  </ul>
+</nav>
+```
+
+Note that the `<nav>` must still have list elements like `<ul>`, and each link is still wrapped with `<li>`
+
+It's ok to have multiple `<nav>` tags on the page. If you have a sidebar with links to your blog posts, and each blog post has a table of contents linking to different sections of the post, both of those should be wrapped in `<nav>` tags
+
+On the other hand, it's common for site footers to be filled with various links. Since these are not a primary method of navigation, no `<nav>` tag is needed.
+
+## Description lists
+
+The `<dl>` tag is for description lists. These are useful when you want to show information that has both a **term** and a **definition**
+
+While `<ul>` and `<ol>` tags can only have `<li>` elements as children, `<dl>` tags have `<dt>`(description term) and `<dd>` (description definition) elements
+
+It's also ok for description lists to have `<div>` tags as children, but only for presentational reasons.
+
+```html
+<dl>
+  <dt> Property type </dt>
+  <dd> House </dd>
+
+  <dt> Price </dt>
+  <dd> $145,000 </dd>
+
+  <dt> Bedrooms </dt>
+  <dd> 3 </dd>
+</dl>
+```
+
+A `<dt>`
