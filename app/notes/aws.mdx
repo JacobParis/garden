@@ -1,0 +1,23 @@
+export const title = 'AWS Permissions'
+
+## GetSessionToken
+
+GetSessionToken creates temporary credentials with exactly the same permissions as the issuing user.
+
+In a 2FA system, you can verify the second factor before issuing the session token to control access to content.
+
+The credentials returned by GetSessionToken can last a maximum of 36 hours
+
+## GetFederationToken
+
+GetFederationToken returns temporary credentials that are a subset of the credentials of the issuing user.
+
+You can select which permissions by passing the session policy in the API call to GetFederationToken. The resulting permissions are the venn diagram overlap of the session policy and the issuing user's permissions.
+
+If you do not pass a policy, the resulting user will have zero permissions.
+
+The credentials returned by GetFederationToken can last to a maximum of 36 hours
+
+## CredentialProviderCognitoIdentity
+
+We are currently using this to take the user
