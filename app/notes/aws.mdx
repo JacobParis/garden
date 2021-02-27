@@ -1,5 +1,11 @@
 export const title = 'AWS Permissions'
 
+# Temporary credentials
+
+For best security practice, customers should be given temporary credentials to access our API and AWS Services such as S3.
+
+*Temporary* means anywhere from minutes to a few days.
+
 ## GetSessionToken
 
 GetSessionToken creates temporary credentials with exactly the same permissions as the issuing user.
@@ -20,4 +26,86 @@ The credentials returned by GetFederationToken can last to a maximum of 36 hours
 
 ## CredentialProviderCognitoIdentity
 
-We are currently using this to take the user
+Given a logged in user's Id Token, you can get credentials for AWS Services.
+
+To generate restricted access credentials, you would first need to add them to the identity pool
+
+# Long-term credentials
+
+In order to give customers credentials that last weeks rather than hours, we need to generate long-term credentials for them.
+
+Cognito Identity Pools can handle both authenticated and unauthenticated users. Allowing unauthenticated users is not for the faint of heart, and requires considerable attention paid to the security risks. On the other hand, using authenticated users to simulate unauthenticated access has just as much capability to open security holes. Be wary.
+
+Identity pools offer one role for authenticated users (logged in) and one role for unauthenticated users (guests, customers, etc)
+
+That role can have a policy with the Iam:PassRole permission, which will allow dynamically escalating permissions.
+
+PassRole allows the user to escalate their privilege to another role. 
+
+The first problem is that because iam:PassRole is only a permission and not an API action, “uses” of PassRole (or, rather, checks of the permission iam:PassRole) are by definition not logged to CloudTrail. 
+
+PassRole allows the user to assume the s3-agent role which has full control over all of S3. This is definitely not something we want our unauthenticated users to be able to do
+
+The ideal situation is that we can issue a policy which will allow for S3 upload and download from a specific bucket, and then we can have a specific bucket for each deal.
+
+I need to dig into how the policies are written to see if I can write a dynamic enough role to restrict each borrower to only their own deals
+
+Both authenticated users and unauthenticated users are given the role `arn:aws:iam::728951055026:role/oscar-cognito-CognitoGuestRole-CNZBZF8RUP5Y`
+
+This role has two policies
+- CognitoGuestPolicy
+```
+{
+            "Action": [
+                "cognito-idp:SignUp",
+                "cognito-idp:AdminConfirmSignup"
+            ],
+            "Resource": "*",
+            "Effect": "Allow"
+        }
+```
+- pass-role
+```
+{
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": "arn:aws:iam::728951055026:role/s3-agent"
+        }
+```
+
+
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:DeleteObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::*/*",
+                "arn:aws:s3:::oscar-dev-document-service"
+            ]
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": [
+                "textract:DetectDocumentText",
+                "textract:AnalyzeDocument",
+                "textract:GetDocumentTextDetection",
+                "textract:GetDocumentAnalysis"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+            "Resource": "arn:aws:iam::728951055026:role/s3-agent"
